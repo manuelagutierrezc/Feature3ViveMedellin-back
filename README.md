@@ -44,13 +44,43 @@
 📌 Próximamente se incluirá un diagrama detallado de la arquitectura del sistema.
 
 ---
+Pensado durante unos segundos
+
 
 ## ✨ Features Principales
 
-- 📍 Geolocalización de eventos culturales.
-- 🗓 Calendario personalizado de actividades.
-- 🔔 Sistema de notificaciones inteligente.
-- 🧠 Recomendaciones basadas en comportamiento del usuario.
-- 📊 Panel administrativo con estadísticas y gestión de contenidos.
+* 🔐 **Autenticación y Autorización**
+  Requiere inicio de sesión para comentar, responder y acceder a las funciones sociales.
 
+* 💬 **CRUD de Comentarios en Eventos**
+  – Crear y publicar comentarios en la página de cada evento.
+  – Consultar y listar (paginar) los comentarios existentes.
+
+* 🗑️ **Moderación de Comentarios**
+  – Eliminación de comentarios por su autor.
+  – Eliminación y gestión de comentarios inapropiados por administradores.
+
+* 🔔 **Notificaciones In-App**
+  – Avisos a usuarios cuando alguien comenta en un evento guardado.
+  – Avisos al autor de un comentario cuando recibe respuestas.
+
+---
+
+## ⚡ Mejoras y Extensiones
+
+* 🧵 **Respuestas Anidadas (Threads)**
+  Hilos de conversación para responder directamente a comentarios específicos.
+
+* 📤 **Compartir Eventos**
+  Envío de enlaces de eventos a amigos dentro o fuera de la plataforma.
+
+* 👥 **Seguimiento de Usuarios**
+  Funcionalidad “seguir” / “dejar de seguir” para recibir actividad de usuarios afines.
+
+* 📊 **Dashboard de Actividad Social**
+  Panel con métricas:
+
+  * Eventos más comentados.
+  * Usuarios más activos.
+  * Tendencias de interacción comunitaria.
 ---
