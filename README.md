@@ -43,9 +43,6 @@
 
 📌 Próximamente se incluirá un diagrama detallado de la arquitectura del sistema.
 
----
-Pensado durante unos segundos
-
 
 ## ✨ Features Principales
 
