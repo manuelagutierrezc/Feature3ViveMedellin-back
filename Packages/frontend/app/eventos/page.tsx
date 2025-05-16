@@ -1,12 +1,29 @@
-import React from 'react';
+import EventDetails from "@/components/evento/event-detail"
+import EventHeader from "@/components/evento/event-head"
+import EventImage from "@/components/evento/event-image"
+import SimilarEvents from "@/components/evento/similar-events"
+import CommentsSection from "@/components/comments/comments-section"
+import Header from "@/components/header"
 
-// This is the page for managing events.
+export default function Home() {
+  return (
+    <div className="min-h-screen bg-[#f2f7f5]">
+      <Header />
 
-export default function Eventos() {
-    return (
-        <div>
-            <h1>Eventos</h1>
-            {/* Add UI components for displaying and managing events here */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <EventHeader />
+            <EventDetails />
+            <CommentsSection />
+          </div>
+
+          <div className="space-y-8">
+            <EventImage />
+            <SimilarEvents />
+          </div>
         </div>
-    );
-} 
+      </main>
+    </div>
+  )
+}
