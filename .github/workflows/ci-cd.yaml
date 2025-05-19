@@ -25,38 +25,32 @@ jobs:
           echo "Checking frontend directory:"
           ls -la Packages/frontend
 
-      - name: Setup Node.js y cache npm
+      - name: Setup Node.js and cache npm
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: Packages/frontend/package-lock.json
 
-      - name: Instalar dependencias y Vercel CLI
+      - name: Install dependencies and Vercel CLI
         run: |
           cd Packages/frontend
-          pwd
-          ls -la
           npm ci
           npm install -g vercel@latest
 
-      - name: Pull variables y settings de Vercel
+      - name: Pull Vercel environment variables
         run: |
           cd Packages/frontend
-          pwd
           vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
 
       - name: Build frontend
         run: |
           cd Packages/frontend
-          pwd
-          ls -la
           vercel build --prod --yes --token="${{ secrets.VERCEL_TOKEN }}"
 
       - name: Deploy frontend
         run: |
           cd Packages/frontend
-          pwd
           vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
 
   backend:
@@ -71,14 +65,14 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Verify backend directory
+      - name: Verify backend directory exists
         run: |
           if [ ! -d "Packages/backend" ]; then
             echo "❌ El directorio Packages/backend no existe"
             exit 1
           fi
 
-      - name: Build backend
+      - name: Build backend with Maven
         run: |
           cd Packages/backend
           mvn clean install
