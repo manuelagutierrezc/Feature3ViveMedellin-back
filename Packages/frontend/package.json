@@ -9,8 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "cookies-next": "^2.1.0",
+    "jsonwebtoken": "^9.0.0",
     "lucide-react": "^0.510.0",
     "next": "15.3.2",
     "react": "^19.0.0",
@@ -22,6 +25,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",

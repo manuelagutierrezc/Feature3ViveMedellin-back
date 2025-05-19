@@ -1,5 +1,26 @@
-import React from "react";
-export default function Register() {
+"use client"
+import { useState } from "react";
+import axios from "axios";
+import { setCookie } from "cookies-next";
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("/api/auth/login", { email, password });
+      const { token } = response.data;
+      setCookie("jwt", token, { maxAge: 60 * 60 * 24 }); // Store JWT in cookies for 1 day
+      // Redirect to a protected route or dashboard
+    } catch (err) {
+      console.error(err);
+      setError("Invalid credentials");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       {/* Logo */}
@@ -15,24 +36,32 @@ export default function Register() {
         Ingresa con tu correo y contraseña
       </p>
 
-      {/* input del correo */}
-      <input
-        type="email"
-        placeholder="Correo electrónico"
-        className="w-full max-w-md px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-      />
+      <form onSubmit={handleSubmit} className="w-full max-w-md">
+        {/* input del correo */}
+        <input
+          type="email"
+          placeholder="Correo electrónico"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        />
 
-      {/* Input de la coontraseña */}
-      <input
-        type="password"
-        placeholder="Contraseña"
-        className="w-full max-w-md px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-      />
+        {/* Input de la coontraseña */}
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        />
 
-      {/* Boton de continuar */}
-      <button className="w-full max-w-md bg-yellow-400 hover:bg-yellow-500 text-green-900 font-semibold py-2 rounded-md mb-6">
-        Continuar
-      </button>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+
+        {/* Boton de continuar */}
+        <button type="submit" className="w-full bg-yellow-400 hover:bg-yellow-500 text-green-900 font-semibold py-2 rounded-md mb-6">
+          Continuar
+        </button>
+      </form>
 
       {/* Linea */}
       <div className="flex items-center w-full max-w-md mb-6">
@@ -63,3 +92,4 @@ export default function Register() {
     </div>
   );
 }
+
