@@ -20,7 +20,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: packages/frontend
+        working-directory: Packages/frontend
 
     steps:
       - name: Checkout code
@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: packages/frontend/package-lock.json
+          cache-dependency-path: Packages/frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -58,7 +58,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: packages/backend
+        working-directory: Packages/backend
 
     steps:
       - name: Checkout code
