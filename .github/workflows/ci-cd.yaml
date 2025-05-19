@@ -2,11 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 env:
   VERCEL_ORG_ID:    ${{ secrets.VERCEL_ORG_ID }}
@@ -27,12 +25,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Packages/frontend/package-lock.json
 
-      - name: Install frontend deps & Vercel CLI
+      - name: Install deps y Vercel CLI
         run: |
           npm ci --prefix Packages/frontend
           npm install --global vercel@latest
 
-      - name: Pull Vercel settings y env vars
+      - name: Pull Vercel settings y variables
         run: |
           vercel pull --yes \
             --environment=production \
@@ -41,13 +39,15 @@ jobs:
 
       - name: Build frontend
         run: |
-          vercel build --prod --yes \
+          vercel build \
+            --prod --yes \
             --token="${{ secrets.VERCEL_TOKEN }}" \
             --cwd Packages/frontend
 
       - name: Deploy frontend
         run: |
-          vercel deploy --prebuilt --prod \
+          vercel deploy \
+            --prebuilt --prod \
             --token="${{ secrets.VERCEL_TOKEN }}" \
             --cwd Packages/frontend
 
@@ -63,7 +63,7 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Verify backend
+      - name: Verify backend directory
         run: |
           if [ ! -d "Packages/backend" ]; then
             echo "❌ El directorio Packages/backend no existe"
