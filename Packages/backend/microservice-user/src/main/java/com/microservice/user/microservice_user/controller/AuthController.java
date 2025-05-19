@@ -1,5 +1,7 @@
 package com.microservice.user.microservice_user.controller;
 
+import com.microservice.user.microservice_user.dto.Auth;
+import com.microservice.user.microservice_user.dto.LoginRequest;
 import com.microservice.user.microservice_user.dto.RegisterRequest;
 import com.microservice.user.microservice_user.service.AuthService;
 import jakarta.validation.Valid;
@@ -27,5 +29,11 @@ public class AuthController {
 
         authService.registerUser(registerRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body("Registrado");
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Auth> login(@RequestBody LoginRequest loginRequest){
+        Auth auth = authService.login(loginRequest);
+        return ResponseEntity.ok(auth);
     }
 }

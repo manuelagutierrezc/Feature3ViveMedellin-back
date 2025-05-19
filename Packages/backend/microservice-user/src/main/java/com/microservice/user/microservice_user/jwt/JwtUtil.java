@@ -33,10 +33,10 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(Authentication authentication) {
+    public String generateToken(User user) {
 
         Date now = new Date();
-        String username = authentication.getName();
+        String username = user.getUsername();
         SecretKey key = getKey();
         MacAlgorithm signatureAlgorithm = Jwts.SIG.HS256;
 

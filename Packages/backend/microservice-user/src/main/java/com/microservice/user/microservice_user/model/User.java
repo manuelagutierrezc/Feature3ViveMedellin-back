@@ -32,7 +32,6 @@ public class User implements UserDetails {
     @Column(name = "id_usuario")
     private Integer userId;
 
-    @NotBlank
     @Column(name = "nombre", nullable = false)
     private String userName;
 
