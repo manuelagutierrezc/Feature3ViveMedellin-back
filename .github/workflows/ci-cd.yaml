@@ -33,19 +33,21 @@ jobs:
         run: npm ci
 
       - name: Install Vercel CLI
+        working-directory: Packages/frontend
         run: npm install --global vercel@latest
 
-      - name: Pull Vercel environment information
+      - name: Pull Vercel Environment Information
         working-directory: Packages/frontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build project artifacts
+      - name: Build Project Artifacts
         working-directory: Packages/frontend
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy project artifacts to Vercel
+      - name: Deploy Project Artifacts to Vercel
         working-directory: Packages/frontend
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
 
   backend:
     runs-on: ubuntu-latest
