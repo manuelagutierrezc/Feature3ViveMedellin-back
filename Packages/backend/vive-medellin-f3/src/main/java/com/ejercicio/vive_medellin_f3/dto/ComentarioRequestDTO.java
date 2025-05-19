@@ -6,13 +6,6 @@ public class ComentarioRequestDTO {
     private Integer idComentarioPadre;
     private String contenido;
 
-
-
-
-
-
-
-
     //constructor getters, setters
 
     public ComentarioRequestDTO() {

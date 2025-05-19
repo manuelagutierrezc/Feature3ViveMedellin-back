@@ -1,0 +1,29 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: microservice-user
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/tblusuarios
+    username: postgres
+    password: 3201
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  config:
+    import: "optional:configserver:http://localhost:8888"
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+        defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: my-super-secret-key-which-is-long-enough-1234567890
+  expiration: 3600000
