@@ -15,7 +15,8 @@ jobs:
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
       - name: Setup Node.js y cache npm
         uses: actions/setup-node@v3
@@ -25,10 +26,12 @@ jobs:
           cache-dependency-path: Packages/frontend/package-lock.json
 
       - name: Instalar dependencias y Vercel CLI
-        run: npm ci && npm install -g vercel@latest
+        run: |
+          npm ci
+          npm install -g vercel@latest
         working-directory: Packages/frontend
 
-      - name: Pull de configuración de Vercel
+      - name: Pull variables y settings de Vercel
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
         working-directory: Packages/frontend
 
@@ -39,6 +42,7 @@ jobs:
       - name: Deploy frontend
         run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
         working-directory: Packages/frontend
+
 
   backend:
     runs-on: ubuntu-latest
