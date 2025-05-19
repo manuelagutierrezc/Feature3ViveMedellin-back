@@ -6,19 +6,6 @@ public class ComentarioResponseDTO {
     private String nombreUsuario;
     private Integer idComentarioPadre;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     //constructor getters, setters
     public ComentarioResponseDTO() {
     }
