@@ -1,6 +1,14 @@
 package com.microservice.user.microservice_user.dto;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class LoginRequest {
-    private String email;
-    private String password;
+    public String email;
+    public String password;
 }

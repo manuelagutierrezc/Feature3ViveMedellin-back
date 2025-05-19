@@ -11,7 +11,7 @@ spring:
     password: 3201
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   config:
@@ -23,3 +23,7 @@ eureka:
   client:
     service-url:
         defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: secret
+  expiration: 3600000
