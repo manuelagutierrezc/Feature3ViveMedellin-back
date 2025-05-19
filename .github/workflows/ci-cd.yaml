@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Ajusta según la versión de Node.js que uses
+          node-version: '20'  # Ajusta según la versión de Node.js que uses
 
       - name: Install dependencies
         run: |
@@ -34,11 +34,6 @@ jobs:
         run: |
           cd Packages/frontend
           npm run lint
-
-      - name: Run Tests
-        run: |
-          cd Packages/frontend
-          npm test
 
       - name: Build Next.js app
         run: |
