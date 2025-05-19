@@ -14,6 +14,9 @@ env:
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Packages/frontend
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -29,23 +32,21 @@ jobs:
         run: |
           npm ci
           npm install -g vercel@latest
-        working-directory: Packages/frontend
 
       - name: Pull variables y settings de Vercel
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
-        working-directory: Packages/frontend
 
       - name: Build frontend
         run: vercel build --prod --yes --token="${{ secrets.VERCEL_TOKEN }}"
-        working-directory: Packages/frontend
 
       - name: Deploy frontend
         run: vercel deploy --prebuilt --prod --token="${{ secrets.VERCEL_TOKEN }}"
-        working-directory: Packages/frontend
-
 
   backend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Packages/backend
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -64,5 +65,4 @@ jobs:
           fi
 
       - name: Build backend
-        working-directory: Packages/backend
         run: mvn clean install
