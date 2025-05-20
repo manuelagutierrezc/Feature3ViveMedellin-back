@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 export default function Header() {
   return (
-    <header className="container mx-auto py-4 px-4 flex items-center justify-between">
+    <header className="container bg-primary mx-auto py-4 px-4 flex items-center justify-between">
       <div className="flex items-center">
         <Image src="/logo.png" alt="ViveMedellín Logo" width={240} height={60} className="h-auto" />
       </div>

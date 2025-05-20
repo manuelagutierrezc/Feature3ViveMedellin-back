@@ -1,43 +1,43 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { X } from "lucide-react"
-import { useAuth } from "@/context/auth-context"
+import { useState } from "react";
+import { X } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
 
 interface LoginModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const { login } = useAuth()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError("")
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
-      const success = await login(email, password)
+      const success = await login(email, password);
       if (success) {
-        onClose()
+        onClose();
       } else {
-        setError("Credenciales incorrectas. Intenta con demo@example.com")
+        setError("Credenciales incorrectas. Intenta con demo@example.com");
       }
     } catch {
-      setError("Error al iniciar sesión. Intenta de nuevo.")
+      setError("Error al iniciar sesión. Intenta de nuevo.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -50,11 +50,16 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <X size={20} />
         </button>
 
-        <h2 className="text-2xl font-bold text-[#00473e] mb-6">Iniciar Sesión</h2>
+        <h2 className="text-2xl font-bold text-[#00473e] mb-6">
+          Iniciar Sesión
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-[#475d5b] mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-[#475d5b] mb-1"
+            >
               Correo electrónico
             </label>
             <input
@@ -69,7 +74,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-[#475d5b] mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-[#475d5b] mb-1"
+            >
               Contraseña
             </label>
             <input
@@ -101,5 +109,5 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </form>
       </div>
     </div>
-  )
+  );
 }
