@@ -40,8 +40,7 @@ export default function CommentForm() {
       <button
         type="submit"
         disabled={!text.trim()}
-        className="bg-[#faae2b] text-[#00473e] font-medium px-4 py-2 rounded-md disabled:opacity-50"
-      >
+        className="w-full bg-[#faae2b] text-[#00473e] font-medium py-2 rounded-md hover:bg-[#f9a61a] transition-colors disabled:opacity-70"      >
         Publicar comentario
       </button>
     </form>
