@@ -10,6 +10,7 @@ import com.microservice.user.microservice_user.jwt.JwtUtil;
 import com.microservice.user.microservice_user.model.Role;
 import com.microservice.user.microservice_user.model.User;
 import com.microservice.user.microservice_user.repository.RoleRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,5 +48,9 @@ public class AuthService {
 
     private void authenticate(String username, String password) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+    }
+
+    public String getUsernameFromToken(String token) {
+        return jwtUtil.getUsernameFromToken(token);
     }
 }

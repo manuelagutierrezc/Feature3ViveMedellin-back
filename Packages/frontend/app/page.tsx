@@ -8,7 +8,7 @@ export default function Home() {
           Bienvenido Vive Medellín
         </h1>
         <p className="text-lg text-center sm:text-left">
-          Aquí encontrarás información más detallada luego
+          Aquí encontrarás información más detallada luego.
         </p>
       </main>
       

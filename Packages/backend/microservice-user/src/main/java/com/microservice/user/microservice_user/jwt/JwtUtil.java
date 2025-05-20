@@ -45,6 +45,7 @@ public class JwtUtil {
                 .type("JWT")
                 .and()
                 .subject(username)
+                .claim("userId", user.getUserId())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiration))
                 .signWith(key, signatureAlgorithm)

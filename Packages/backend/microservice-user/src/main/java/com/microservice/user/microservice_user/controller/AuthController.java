@@ -36,4 +36,13 @@ public class AuthController {
         Auth auth = authService.login(loginRequest);
         return ResponseEntity.ok(auth);
     }
+
+    @PostMapping("ValidateToken")
+    public ResponseEntity<String> validateToken(@RequestBody Auth auth){
+        String token = auth.getToken();
+        if (token == null || token.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is missing");
+        }
+        return ResponseEntity.ok("Token is valid");
+    }
 }
