@@ -1,125 +1,217 @@
-import React from "react";
+"use client";
 
+import { useState } from "react";
 import Image from "next/image";
+import { ChevronDown } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
+import LoginModal from "@/components/auth/login-modal";
+import CommentsSection from "@/components/comments/comments-section";
+import UserMenu from "@/components/user-menu";
 
-export default function Inicio() {
+export default function Home() {
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+
   return (
-    <div className="min-h-screen bg-white p-6 font-sans ">
-      {/* Header */}
-      <header className=" items-center mb-6">
-        <div className="flex items-center gap-2 justify-between">
-          <Image src="/logo.png" alt="Logo" width={266} height={48} />
-
-          <input
-            type="text"
-            placeholder="🔍 Realice una búsqueda ..."
-            className="border px-3 py-1 rounded-md text-sm max-w-5x100"
+    <div className="min-h-screen bg-[#f2f7f5]">
+      {/* HEADER */}
+      <header className="bg-[#f2f7f5] py-5 px-6 flex items-center justify-between border-b border-[#e2e8f0]">
+        <div className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="ViveMedellín Logo"
+            width={180}
+            height={48}
           />
-          <div className="flex items-center gap-4">
-            <button className="px-4 py-1 border rounded-md bg-white hover:bg-gray-100 text-sm">
-              Explorar ▾
-            </button>
-            <button className="px-4 py-1 border rounded-md bg-white text-sm font-semibold">
-              Actividad ▾
-            </button>
-            <button className="px-4 py-1 border rounded-md bg-white hover:bg-gray-100 text-sm">
-              Perfil
-            </button>
-            <button className="px-4 py-1 border rounded-md bg-yellow-400 text-sm font-semibold">
-              Cerrar Sesión
-            </button>
+        </div>
+
+        <div className="flex items-center gap-5">
+          {/* Buscador */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Realiza una búsqueda ..."
+              className="w-[300px] pl-10 pr-4 py-2 rounded-md border border-[#e2e8f0] text-sm focus:outline-none"
+            />
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+              <svg
+                className="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
           </div>
+
+          {/* Botones de navegación */}
+          <button className="bg-[#faae2b] text-[#00473e] font-medium px-4 py-2 rounded-md flex items-center text-sm transition-all duration-300 transform hover:bg-[#00473e] hover:text-white hover:scale-105">
+            Explorar <ChevronDown className="ml-1 h-4 w-4" />
+          </button>
+
+          <button className="text-[#00473e] font-medium text-sm hover:text-white hover:bg-[#00473e] px-4 py-2 rounded transition-transform duration-300 transform hover:scale-105">
+            <span className="flex items-center gap-1">
+              Actividad <ChevronDown className="h-4 w-4" />
+            </span>
+          </button>
+
+          <button className="text-[#00473e] font-medium text-sm hover:text-white hover:bg-[#00473e] px-4 py-2 rounded transition-transform duration-300 transform hover:scale-105">
+            Registro
+          </button>
+
+          {isAuthenticated ? (
+            <UserMenu />
+          ) : (
+            <button
+              onClick={() => setIsLoginModalOpen(true)}
+              className="text-[#00473e] font-medium text-sm transition-all duration-300 transform hover:text-[#faae2b] hover:scale-105"
+            >
+              Iniciar Sesión
+            </button>
+          )}
         </div>
       </header>
-
-      {/* Título principal */}
-      <h2 className="text-2xl font-bold text-green-900 mb-4">
-        ¡Descubre actividades locales!
-      </h2>
-
-      <div className="grid grid-cols-12 gap-6">
-        {/* Sugerencias */}
-        <div className="col-span-8">
-          <h3 className="text-lg font-semibold mb-3">Sugerencias para ti</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-[#072A2D] text-white rounded-md p-2">
-                <div className="h-24 bg-gray-300 mb-2 rounded-md" />
-                <p className="text-sm font-semibold">Conoce este nuevo lugar</p>
-                <p className="text-xs">Ubicación</p>
+      <main className="max-w-[1200px] mx-auto px-1 py-3">
+        <h1 className="text-[35px] font-bold text-[#00473e] mb-4 leading-tight">
+          ¡Descubre actividades locales!
+        </h1>
+        <h2 className="text-lg font-semibold text-[#00473e] mb-4">
+          Sugerencias para ti
+        </h2>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Izquierda: Sugerencias ( un grid 2x2) */}
+          <div className="grid grid-cols-2 gap-4 flex-1">
+            {[
+              "/Rectangle4.png",
+              "/Rectangle5.png",
+              "/Rectangle7.png",
+              "/Rectangle8.png",
+            ].map((src, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-1 rounded-xl overflow-hidden"
+              >
+                <Image
+                  src={src}
+                  alt={`Lugar ${index + 1}`}
+                  width={110}
+                  height={90}
+                  className="rounded-md object-cover h-38 w-57"
+                />
+                <div className="text-sm text-[#00473e]">
+                  <p className="font-medium text-center w-40 leading-tight">
+                    Conoce este <br /> nuevo lugar
+                  </p>
+                  <p className="text-xs text-gray-500 w-40 text-center leading-tight">
+                    Ubicación
+                  </p>
+                </div>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Comunidad */}
-        <div className="col-span-4">
-          <h3 className="text-lg font-semibold mb-3">
-            Explora nuestra comunidad
-          </h3>
-          <div className="space-y-3">
-            <div className="bg-gray-100 p-3 rounded-md text-sm">
-              <span className="inline-block w-2 h-2 bg-pink-400 rounded-full mr-2"></span>
-              Usuario1 comentó:
+          {/* Derecha: Comunidad */}
+          <div className="w-full md:w-1/3  p-4 rounded-xl ">
+            <h3 className="text-[#00473e] font-semibold text-base mb-2 text-center">
+              Explora nuestra comunidad
+            </h3>
+            <p className="text-sm text-gray-600 mb-3 text-center">
+              Conecta con otros, comparte experiencias.
+            </p>
+
+            <div className="space-y-2 mb-4">
+              <div className="bg-[#D9D9D9]  rounded-md p-2 text-sm text-gray-800 flex items-center gap-2 w-106 h-20">
+                <span className="h-3 w-3 bg-pink-400 rounded-full" /> Usuario1
+                comentó:
+              </div>
+              <div className="bg-[#D9D9D9]  rounded-md p-2 text-sm text-gray-800 flex items-center gap-2 w-106 h-20">
+                <span className="h-3 w-3 bg-pink-400 rounded-full" /> Usuario2
+                dio una reseña de Lugar1:
+              </div>
             </div>
-            <div className="bg-gray-100 p-3 rounded-md text-sm">
-              <span className="inline-block w-2 h-2 bg-pink-400 rounded-full mr-2"></span>
-              Usuario2 dio una reseña de Lugar1:
-            </div>
-            <button className="bg-yellow-400 hover:bg-yellow-300 text-sm px-4 py-1 rounded font-semibold">
+
+            <button className="bg-[#faae2b] hover:bg-[#e09b21] text-[#00473e] font-medium px-4 py-2 rounded-md transition w-45 h-12">
               Ver más
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Comentarios de lugares */}
-      <section className="mt-8">
-        <h3 className="text-lg font-semibold mb-4">
+        <h2 className="text-lg font-semibold text-[#00473e] mb-4">
+          <br />
           Interactúa y opina sobre diferentes lugares
-        </h3>
-
-        <div className="bg-gray-100 p-4 rounded-md flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-24 h-24 rounded-full bg-gray-300" />
+        </h2>
+        {/* Zona final */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className=" p-4">
+            <div className="flex items-center space-x-4">
+              <Image
+                src="/Icon1.png"
+                alt="Lugar1"
+                width={70}
+                height={70}
+                className="rounded-full object-cover"
+              />
+              <div>
+                <p className="text-[#00473e] font-medium">Lugar1</p>
+              </div>
+            </div>
+            <br />
             <div>
-              <h4 className="text-lg font-bold">Lugar1</h4>
-              <p className="text-sm text-gray-500">
+              {" "}
+              <p className="text-xl text-gray-500">
                 +100 personas han comentado
               </p>
             </div>
           </div>
-          <button className="mt-3 md:mt-0 bg-white border rounded-md px-4 py-1 hover:bg-gray-100 text-sm">
-            Comentar
-          </button>
+          <div className=" p-4">
+            <div className="bg-[#D9D9D9]  rounded-md p-2 text-sm text-gray-800 flex items-center gap-2 w-66 h-20">
+              <span className="h-3 w-3 rounded-full" /> Usuario 3: <br /> Muy
+              buen ambiente.
+            </div>
+            <br />
+            <div className="bg-[#D9D9D9]  rounded-md p-2 text-sm text-gray-800 flex items-center gap-2 w-66 h-20">
+              <span className="h-3 w-3 rounded-full" /> Usuario 4: <br />{" "}
+              Tranquilo y seguro.
+            </div>
+          </div>
+          <div className=" p-4">
+            <div className="bg-[#D9D9D9]  rounded-md p-2 text-sm text-gray-800 flex items-center gap-2 w-66 h-20">
+              <span className="h-3 w-3 rounded-full" /> Usuario 3: <br /> Muy
+              buen ambiente.
+            </div>
+            <br />
+            <div className="bg-[#D9D9D9]  rounded-md p-2 text-sm text-gray-800 flex items-center gap-2 w-66 h-20">
+              <span className="h-3 w-3 rounded-full" /> Usuario 4: <br />{" "}
+              Tranquilo y seguro.
+            </div>
+          </div>
+          <div className=" p-4">
+            {" "}
+            <br />
+            <button className=" text-[#00473e]  shadow-md hover:shadow-lg rounded-md px-4 py-2 font-medium transition duration-200">
+              Comentar
+            </button>
+            <br />
+            <br />
+            <br />
+            <br />
+            <button className=" text-[#00473e]  shadow-md hover:shadow-lg rounded-md px-4 py-2 font-medium transition duration-200">
+              Ver lugares
+            </button>
+          </div>
         </div>
+      </main>
 
-        {/* Opiniones */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white border p-3 rounded-md text-sm">
-            <p className="font-bold">Usuario3</p>
-            <p>"Muy buen ambiente"</p>
-          </div>
-          <div className="bg-white border p-3 rounded-md text-sm">
-            <p className="font-bold">Usuario4</p>
-            <p>"Tranquilo y seguro"</p>
-          </div>
-          <div className="bg-white border p-3 rounded-md text-sm">
-            <p className="font-bold">Usuario5</p>
-            <p>"Ideal para la familia"</p>
-          </div>
-          <div className="bg-white border p-3 rounded-md text-sm">
-            <p className="font-bold">Usuario6</p>
-            <p>"Es fácil llegar al lugar"</p>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <button className="bg-white border px-4 py-1 rounded-md hover:bg-gray-100 text-sm">
-            Ver más lugares
-          </button>
-        </div>
-      </section>
+      {/* Modal de Login */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
     </div>
   );
 }
