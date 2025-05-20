@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState } from "react";
 import axios from "axios";
 import { setCookie } from "cookies-next";
@@ -58,7 +58,10 @@ export default function Login() {
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
         {/* Boton de continuar */}
-        <button type="submit" className="w-full bg-yellow-400 hover:bg-yellow-500 text-green-900 font-semibold py-2 rounded-md mb-6">
+        <button
+          type="submit"
+          className="w-full bg-yellow-400 hover:bg-yellow-500 text-green-900 font-semibold py-2 rounded-md mb-6"
+        >
           Continuar
         </button>
       </form>
@@ -92,4 +95,3 @@ export default function Login() {
     </div>
   );
 }
-
