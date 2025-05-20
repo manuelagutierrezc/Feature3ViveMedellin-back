@@ -5,7 +5,6 @@ import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import LoginModal from "@/components/auth/login-modal";
-import CommentsSection from "@/components/comments/comments-section";
 import UserMenu from "@/components/user-menu";
 
 export default function Home() {
