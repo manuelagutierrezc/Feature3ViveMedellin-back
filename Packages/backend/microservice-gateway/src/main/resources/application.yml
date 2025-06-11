@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    import: "optional:configserver:http://localhost:8888"
+  application:
+    name: microservice-gateway
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: microservice-user
+            uri: http://localhost:8090
+            predicates:
+              - Path=/api/auth/**
+
+          - id: microservice-comment
+            uri: http://localhost:8091
+            predicates:
+              - Path=/api/comentarios/**
+
+
