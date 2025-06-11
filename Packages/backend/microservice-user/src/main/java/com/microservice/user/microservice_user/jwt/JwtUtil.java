@@ -39,7 +39,6 @@ public class JwtUtil {
                 .and()
                 .subject(username)
                 .claim("userId", user.getUserId())
-                .claim("role", user.getRole())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiration))
                 .signWith(key, signatureAlgorithm)
