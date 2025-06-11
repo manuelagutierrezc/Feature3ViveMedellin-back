@@ -4,10 +4,10 @@ import type React from "react"
 import { ChevronDown } from "lucide-react"
 
 interface NavButtonProps {
-  children: React.ReactNode
-  variant?: "default" | "primary"
-  hasDropdown?: boolean
-  onClick?: () => void
+  readonly children: React.ReactNode
+  readonly variant?: "default" | "primary"
+  readonly hasDropdown?: boolean
+  readonly onClick?: () => void
 }
 
 export default function NavButton({

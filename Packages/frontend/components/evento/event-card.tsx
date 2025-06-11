@@ -1,9 +1,9 @@
 import Image from "next/image"
 
 interface EventCardProps {
-  title: string
-  date: string
-  image: string
+  readonly title: string
+  readonly date: string
+  readonly image: string
 }
 
 export default function EventCard({ title, date, image }: EventCardProps) {

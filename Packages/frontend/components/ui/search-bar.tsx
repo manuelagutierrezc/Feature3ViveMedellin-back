@@ -1,7 +1,7 @@
 import { Search } from "lucide-react"
 
 interface SearchBarProps {
-  placeholder: string
+  readonly placeholder: string
 }
 
 export default function SearchBar({ placeholder }: SearchBarProps) {

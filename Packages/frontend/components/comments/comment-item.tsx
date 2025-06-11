@@ -8,7 +8,7 @@ import { useAuth } from "@/context/auth-context"
 import { useComments } from "@/context/comments-context"
 
 interface CommentItemProps {
-  comment: Comment
+  readonly comment: Comment
 }
 
 export default function CommentItem({ comment }: CommentItemProps) {

@@ -93,7 +93,7 @@ export default function Home() {
               "/Rectangle8.png",
             ].map((src, index) => (
               <div
-                key={index}
+                key={src}
                 className="flex items-center gap-1 rounded-xl overflow-hidden"
               >
                 <Image
