@@ -6,17 +6,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.MacAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
-import javax.crypto.Mac;
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 @Service
@@ -46,6 +39,7 @@ public class JwtUtil {
                 .and()
                 .subject(username)
                 .claim("userId", user.getUserId())
+                .claim("role", user.getRole())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiration))
                 .signWith(key, signatureAlgorithm)
@@ -66,15 +60,6 @@ public class JwtUtil {
     private Date getExpirationFromToken(String token) {
         return getClaim(token, Claims::getExpiration);
     }
-
-    private Map<String, Object> generateClaims(User user) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("user_id", user.getUserId());
-        claims.put("role", user.getRole());
-
-        return claims;
-    }
-
 
     private <T> T getClaim(String token, Function<Claims, T> claimsResolver) {
         Claims payload = Jwts.parser()

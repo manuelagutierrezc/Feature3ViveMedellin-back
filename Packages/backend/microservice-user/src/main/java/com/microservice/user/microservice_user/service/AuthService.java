@@ -1,7 +1,6 @@
 package com.microservice.user.microservice_user.service;
 
 
-import com.microservice.user.microservice_user.controller.TokenResponse;
 import com.microservice.user.microservice_user.dto.Auth;
 import com.microservice.user.microservice_user.dto.LoginRequest;
 import com.microservice.user.microservice_user.dto.RegisterRequest;
@@ -10,11 +9,8 @@ import com.microservice.user.microservice_user.jwt.JwtUtil;
 import com.microservice.user.microservice_user.model.Role;
 import com.microservice.user.microservice_user.model.User;
 import com.microservice.user.microservice_user.repository.RoleRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
