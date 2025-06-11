@@ -1,10 +1,10 @@
 import Image from "next/image";
 
 interface CommentCardProps {
-  author: string;
-  content: string;
-  avatar?: string;
-  initials?: string;
+  readonly author: string;
+  readonly content: string;
+  readonly avatar?: string;
+  readonly initials?: string;
 }
 
 export default function CommentCard({

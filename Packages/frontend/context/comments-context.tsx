@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react"
 import type { User } from "@/context/auth-context"
 
 export type Comment = {
@@ -24,7 +24,7 @@ type CommentsContextType = {
 
 const CommentsContext = createContext<CommentsContextType | undefined>(undefined)
 
-export function CommentsProvider({ children }: { children: React.ReactNode }) {
+export function CommentsProvider({ children }: { readonly children: React.ReactNode }) {
   const [comments, setComments] = useState<Comment[]>([])
   const [showAllComments, setShowAllComments] = useState(false)
 
@@ -70,27 +70,31 @@ export function CommentsProvider({ children }: { children: React.ReactNode }) {
   }, [comments])
 
   // Mostrar solo los 2 comentarios más recientes o todos
-  const visibleComments = showAllComments
-    ? comments
-    : comments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 2)
+  const visibleComments = useMemo(() => {
+    // Se crea una copia para no mutar el estado original
+    const sortedComments = [...comments].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    return showAllComments ? sortedComments : sortedComments.slice(0, 2)
+  }, [comments, showAllComments])
 
-  const toggleShowAllComments = () => {
-    setShowAllComments(!showAllComments)
-  }
+  const toggleShowAllComments = useCallback(() => {
+    setShowAllComments((prev) => !prev)
+  }, [])
 
-  const addComment = (text: string, author: User) => {
+  const addComment = useCallback((text: string, author: User) => {
     const newComment: Comment = {
       id: Date.now().toString(),
       text,
       author,
       createdAt: new Date().toISOString(),
     }
-    setComments([...comments, newComment])
-  }
+    setComments((prevComments) => [...prevComments, newComment])
+  }, [])
 
-  const editComment = (id: string, text: string) => {
-    setComments(
-      comments.map((comment) =>
+  const editComment = useCallback((id: string, text: string) => {
+    setComments((prevComments) =>
+      prevComments.map((comment) =>
         comment.id === id
           ? {
               ...comment,
@@ -100,24 +104,29 @@ export function CommentsProvider({ children }: { children: React.ReactNode }) {
           : comment,
       ),
     )
-  }
+  }, [])
 
-  const deleteComment = (id: string) => {
-    setComments(comments.filter((comment) => comment.id !== id))
-  }
+  const deleteComment = useCallback((id: string) => {
+    setComments((prevComments) =>
+      prevComments.filter((comment) => comment.id !== id),
+    )
+  }, [])
+
+  const value = useMemo(
+    () => ({
+      comments,
+      visibleComments,
+      showAllComments,
+      toggleShowAllComments,
+      addComment,
+      editComment,
+      deleteComment,
+    }),
+    [comments, visibleComments, showAllComments, toggleShowAllComments, addComment, editComment, deleteComment],
+  )
 
   return (
-    <CommentsContext.Provider
-      value={{
-        comments,
-        visibleComments,
-        showAllComments,
-        toggleShowAllComments,
-        addComment,
-        editComment,
-        deleteComment,
-      }}
-    >
+    <CommentsContext.Provider value={value}>
       {children}
     </CommentsContext.Provider>
   )

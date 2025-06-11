@@ -1,7 +1,14 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState, useEffect } from "react"
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react"
 
 export type User = {
   id: string
@@ -20,7 +27,29 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+// Usuarios de ejemplo movidos fuera del componente para evitar recreación
+const users: User[] = [
+  {
+    id: "1",
+    name: "Carlos Esteban",
+    email: "carlos@example.com",
+    initials: "CE",
+  },
+  {
+    id: "2",
+    name: "Juan Pablo",
+    email: "juan@example.com",
+    initials: "JP",
+  },
+  {
+    id: "3",
+    name: "Usuario Demo",
+    email: "demo@example.com",
+    initials: "UD",
+  },
+]
+
+export function AuthProvider({ children }: { readonly children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
 
   // Cargar usuario del localStorage al iniciar
@@ -31,62 +60,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Usuarios de ejemplo
-  const users: User[] = [
-    {
-      id: "1",
-      name: "Carlos Esteban",
-      email: "carlos@example.com",
-      initials: "CE",
-    },
-    {
-      id: "2",
-      name: "Juan Pablo",
-      email: "juan@example.com",
-      initials: "JP",
-    },
-    {
-      id: "3",
-      name: "Usuario Demo",
-      email: "demo@example.com",
-      initials: "UD",
-    },
-  ]
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const login = async (email: string, password: string) => {
-    // Simulación de login (en un caso real, esto sería una llamada a API)
-    return new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        const foundUser = users.find((u) => u.email === email)
-        if (foundUser) {
-          setUser(foundUser)
-          localStorage.setItem("user", JSON.stringify(foundUser))
-          resolve(true)
-        } else {
-          resolve(false)
-        }
-      }, 500)
-    })
-  }
+  const login = useCallback(async (email: string, password: string) => {
+    // Simulación de login con retardo, refactorizado para ser más plano
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
-  const logout = () => {
+    const foundUser = users.find((u) => u.email === email)
+    if (foundUser) {
+      setUser(foundUser)
+      localStorage.setItem("user", JSON.stringify(foundUser))
+      return true
+    }
+    return false
+  }, [])
+
+  const logout = useCallback(() => {
     setUser(null)
     localStorage.removeItem("user")
-  }
+  }, [])
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        login,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated: !!user,
+      login,
+      logout,
+    }),
+    [user, login, logout],
   )
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

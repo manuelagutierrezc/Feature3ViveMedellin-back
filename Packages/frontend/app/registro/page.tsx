@@ -1,9 +1,16 @@
 import React from "react";
+import Image from "next/image";
 export default function Register() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       {/* Logo */}
-      <img src="/logo.png" alt="Vive Medellín" className="h-16 mb-6" />
+      <Image
+        src="/logo.png"
+        alt="Vive Medellín"
+        width={180}
+        height={48}
+        className="h-auto w-auto mb-6"
+      />
 
       {/* titulo */}
       <h1 className="text-3xl font-bold text-green-900 text-center mb-2">
@@ -36,13 +43,25 @@ export default function Register() {
 
       {/* Boton de Google */}
       <button className="w-full max-w-md flex items-center justify-center border border-gray-400 py-2 rounded-md mb-4 hover:bg-gray-100">
-        <img src="" alt="Google" className="h-5 w-5 mr-2" />
+        <Image
+          src="/google-icon.svg"
+          alt="Google"
+          width={20}
+          height={20}
+          className="mr-2"
+        />{" "}
         Registrarme con Google
       </button>
 
       {/* Boton de Facebook */}
       <button className="w-full max-w-md flex items-center justify-center border border-gray-400 py-2 rounded-md mb-6 hover:bg-gray-100">
-        <img src="" alt="Facebook" className="h-5 w-5 mr-2" />
+        <Image
+          src="/facebook-icon.svg"
+          alt="Facebook"
+          width={20}
+          height={20}
+          className="mr-2"
+        />{" "}
         Registrarme con Facebook
       </button>
 
