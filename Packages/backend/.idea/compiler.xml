@@ -18,6 +18,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar" />
         </processorPath>
         <module name="microservice-comment" />
+        <module name="microservice-user" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
