@@ -1,5 +1,5 @@
 server:
-    port: 8091
+    port: ${PORT:8091}
 
 spring:
     application:
@@ -18,7 +18,7 @@ spring:
         import: "optional:configserver:http://localhost:8888"
 
 jwt:
-    secret: my-super-secret-key-which-is-long-enough-1234567890
+    secret: ${JWT_SECRET}
 
 springdoc:
   swagger-ui:
