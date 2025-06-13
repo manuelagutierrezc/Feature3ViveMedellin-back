@@ -1,21 +1,19 @@
 server:
-  port: 8090
+  port: ${PORT:8091}
 
 spring:
   application:
     name: microservice-user
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${URL_DB}
-    username: ${USERNAME_DB}
-    password: ${PASSWORD_DB}
+    url: jdbc:postgresql://localhost:5432/UsuarioDB
+    username: postgres
+    password: 3201
   jpa:
     hibernate:
       ddl-auto: update
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-  config:
-    import: "optional:configserver:http://localhost:8888"
 
 jwt:
   secret: my-super-secret-key-which-is-long-enough-1234567890

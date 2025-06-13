@@ -39,7 +39,10 @@ public class AuthService {
         User user = userService.findByEmail(loginRequest.email);
 
         String token = jwtUtil.generateToken(user);
-        return new Auth(token);
+        return Auth.builder()
+                .token(token)
+                .userName(user.getUsername())
+                .build();
     }
 
     private void authenticate(String username, String password) {
@@ -48,5 +51,5 @@ public class AuthService {
 
     public String getUsernameFromToken(String token) {
         return jwtUtil.getUsernameFromToken(token);
-    }
+    } //Sin uso
 }
