@@ -38,6 +38,9 @@ public class Comment {
     @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
 
+    @Column(name = "reporte_cuenta", nullable = false)
+    private int reporteCuenta = 0;
+
     @PrePersist
     protected void onCreate() {
         fechaCreacion = LocalDateTime.now();

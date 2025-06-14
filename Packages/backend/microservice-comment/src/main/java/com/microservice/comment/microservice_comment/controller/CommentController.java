@@ -4,6 +4,7 @@ import com.microservice.comment.microservice_comment.dto.CreateComment;
 import com.microservice.comment.microservice_comment.jwt.JwtUtil;
 import com.microservice.comment.microservice_comment.model.Comment;
 import com.microservice.comment.microservice_comment.service.CommentService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,5 +74,11 @@ public class CommentController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    @PostMapping("/{commentId}/reportar")
+    public ResponseEntity<Void> reportComment(@PathVariable Integer commentId){
+        commentService.reportComment(commentId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

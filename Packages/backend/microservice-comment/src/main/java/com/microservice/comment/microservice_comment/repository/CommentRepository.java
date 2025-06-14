@@ -9,8 +9,6 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
-    List<Comment> findAllByOrderByFechaCreacionDesc();
-
     List<Comment> findByComentarioPadreIdIsNullOrderByFechaCreacionDesc();
 
     List<Comment> findByComentarioPadreIdOrderByFechaCreacionAsc(Integer comentarioPadreId);
@@ -18,6 +16,4 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     List<Comment> findByIdUsuarioOrderByFechaCreacionDesc(Integer idUsuario);
 
     long countByComentarioPadreId(Integer comentarioPadreId);
-
-    boolean existsByComentarioPadreId(Integer comentarioPadreId);
 }

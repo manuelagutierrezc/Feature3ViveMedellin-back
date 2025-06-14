@@ -2,8 +2,10 @@ package com.microservice.comment.microservice_comment.service;
 
 import com.microservice.comment.microservice_comment.model.Comment;
 import com.microservice.comment.microservice_comment.repository.CommentRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -54,4 +56,17 @@ public class CommentService {
     public long countReplies(Integer parentId) {
         return commentRepository.countByComentarioPadreId(parentId);
     }
+
+    @Transactional
+    public void reportComment(Integer commentId){
+        Comment comment = commentRepository.findById(commentId).orElseThrow(() -> new EntityNotFoundException("Comentario no encontrado"));
+        comment.setReporteCuenta(comment.getReporteCuenta() + 1);
+
+        if(comment.getReporteCuenta() >= 3){
+            commentRepository.delete(comment);
+        }else{
+            commentRepository.save(comment);
+        }
+    }
+
 }
