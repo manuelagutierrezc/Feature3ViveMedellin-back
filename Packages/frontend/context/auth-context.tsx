@@ -1,101 +1,135 @@
-"use client"
+"use client";
 
-import type React from "react"
-import {
+import React, {
   createContext,
   useContext,
   useState,
   useEffect,
   useMemo,
-  useCallback,
-} from "react"
+  ReactNode,
+} from "react";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import { loginUser, type LoginRequest, type User } from "@/lib/api/auth";
 
-export type User = {
-  id: string
-  name: string
-  email: string
-  avatar?: string
-  initials?: string
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (creds: LoginRequest) => Promise<void>;
+  logout: () => void;
+  isLoading: boolean;
 }
 
-type AuthContextType = {
-  user: User | null
-  isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
-}
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
+  const [user, setUser] = useState<AuthContextType["user"]>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-// Usuarios de ejemplo movidos fuera del componente para evitar recreación
-const users: User[] = [
-  {
-    id: "1",
-    name: "Carlos Esteban",
-    email: "carlos@example.com",
-    initials: "CE",
-  },
-  {
-    id: "2",
-    name: "Juan Pablo",
-    email: "juan@example.com",
-    initials: "JP",
-  },
-  {
-    id: "3",
-    name: "Usuario Demo",
-    email: "demo@example.com",
-    initials: "UD",
-  },
-]
+  // Leer JWT desde cookie (utilidad básica)
+  const getTokenFromCookies = () => {
+    const match = document.cookie.match(/(^| )jwt=([^;]+)/);
+    return match ? match[2] : null;
+  };
 
-export function AuthProvider({ children }: { readonly children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-
-  // Cargar usuario del localStorage al iniciar
+  // Verificar si hay un token y obtener el usuario
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
+    const verifyToken = async () => {
+      const token = getTokenFromCookies();
+      if (!token) {
+        console.log("🔐 No hay token en cookies");
+        setIsLoading(false);
+        return;
+      }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const login = useCallback(async (email: string, password: string) => {
-    // Simulación de login con retardo, refactorizado para ser más plano
-    await new Promise((resolve) => setTimeout(resolve, 500))
+      try {
+        // Decode the token to get user info
+        const decodedToken = jwtDecode<{
+          sub?: string;
+          userId?: number | string;
+          name?: string;
+          userName?: string;
+          email?: string;
+        }>(token);
+        console.log("🔍 Token decodificado:", decodedToken);
+        
+        // The backend uses 'userId' claim, not 'sub'
+        const userFromToken: User = {
+          id: decodedToken.userId?.toString() || decodedToken.sub || "",
+          userName: decodedToken.name || decodedToken.userName || "Usuario",
+          email: decodedToken.email || "",
+        };
+        setUser(userFromToken);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        console.log("✅ Usuario restaurado desde token:", userFromToken);
+      } catch (err) {
+        console.error("⛔ Fallo al decodificar el token:", err);
+        logout(); // Clear invalid token
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    const foundUser = users.find((u) => u.email === email)
-    if (foundUser) {
-      setUser(foundUser)
-      localStorage.setItem("user", JSON.stringify(foundUser))
-      return true
-    }
-    return false
-  }, [])
+    verifyToken();
+  }, []);
 
-  const logout = useCallback(() => {
-    setUser(null)
-    localStorage.removeItem("user")
-  }, [])
+  // Función de login
+  const login = async (credentials: LoginRequest) => {
+    console.log("🔵 Intentando iniciar sesión con:", credentials.email);
+    const { token, user: userFromLogin } = await loginUser(credentials);
+    const decodedToken = jwtDecode<{
+      sub?: string;
+      userId?: number | string;
+      name?: string;
+      userName?: string;
+      email?: string;
+    }>(token);
 
-  const value = useMemo(
+    // Guardar en cookie
+    document.cookie = `jwt=${token};path=/;max-age=${60 * 60 * 24}`; // 1 día
+    // Configurar token globalmente
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    const loggedInUser: User = {
+      id: decodedToken.userId?.toString() || decodedToken.sub || "",
+      userName: userFromLogin.userName || decodedToken.name || decodedToken.userName || "Usuario",
+      email: credentials.email,
+    };
+
+    // Establecer usuario
+    setUser(loggedInUser);
+
+    console.log("✅ Login correcto, usuario:", loggedInUser);
+  };
+
+  // Función de logout
+  const logout = () => {
+    document.cookie = "jwt=;path=/;max-age=0";
+    delete axios.defaults.headers.common["Authorization"];
+    setUser(null);
+    console.log("👋 Sesión cerrada");
+  };
+
+  const contextValue = useMemo(
     () => ({
       user,
       isAuthenticated: !!user,
       login,
       logout,
+      isLoading,
     }),
-    [user, login, logout],
-  )
+    [user, isLoading]
+  );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-  return context
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth debe usarse dentro de un AuthProvider");
+  return context;
 }

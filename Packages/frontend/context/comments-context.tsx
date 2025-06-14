@@ -2,14 +2,24 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react"
-import type { User } from "@/context/auth-context"
+import { getComments, createComment, deleteComment as apiDeleteComment, type BackendComment } from "@/lib/api/comments"
+import { useAuth } from "@/context/auth-context"
+import type { User } from "@/lib/api/auth"
 
+// Frontend-specific comment structure
 export type Comment = {
   id: string
   text: string
-  author: User
+  author: {
+    id: string
+    name: string
+    initials: string
+    avatar?: string
+  }
   createdAt: string
   updatedAt?: string
+  parentCommentId: string | null
+  replies: Comment[]
 }
 
 type CommentsContextType = {
@@ -17,100 +27,192 @@ type CommentsContextType = {
   visibleComments: Comment[]
   showAllComments: boolean
   toggleShowAllComments: () => void
-  addComment: (text: string, author: User) => void
+  addComment: (text: string, parentCommentId: string | null) => Promise<void>
   editComment: (id: string, text: string) => void
   deleteComment: (id: string) => void
 }
 
 const CommentsContext = createContext<CommentsContextType | undefined>(undefined)
 
+// Helper to transform backend comments to frontend format
+const transformComment = (comment: BackendComment, users: { [key: string]: User | undefined }, loggedInUser: User | null): Comment => {
+  const authorId = comment.idUsuario.toString()
+  
+  // Check if this comment belongs to the logged-in user
+  const isLoggedInUserComment = loggedInUser && loggedInUser.id === authorId
+  
+  // If it's the logged-in user's comment, use their name
+  // Otherwise, try to find in users map or use generic name
+  const authorName = isLoggedInUserComment 
+    ? loggedInUser.userName 
+    : (users[authorId]?.userName ?? "Usuario")
+
+  return {
+    id: comment.idComentario.toString(),
+    text: comment.contenido,
+    author: {
+      id: authorId,
+      name: authorName,
+      initials: authorName
+        .split(" ")
+        .map((n: string) => n[0])
+        .join(""),
+    },
+    createdAt: comment.fechaCreacion,
+    parentCommentId: comment.comentarioPadreId?.toString() || null,
+    replies: [], // Replies will be structured separately
+  }
+}
+
 export function CommentsProvider({ children }: { readonly children: React.ReactNode }) {
   const [comments, setComments] = useState<Comment[]>([])
   const [showAllComments, setShowAllComments] = useState(false)
+  const { user } = useAuth()
 
-  // Cargar comentarios del localStorage al iniciar
-  useEffect(() => {
-    const storedComments = localStorage.getItem("comments")
-    if (storedComments) {
-      setComments(JSON.parse(storedComments))
-    } else {
-      // Comentarios iniciales de ejemplo
-      const initialComments: Comment[] = [
-        {
-          id: "1",
-          text: "El año pasado fui al evento y me encantó demasiado, hay gran variedad de oferta gastronómica y las actividades muy entretenidas.",
-          author: {
-            id: "1",
-            name: "Carlos Esteban",
-            email: "carlos@example.com",
-            initials: "CE"
-          },
-          createdAt: new Date(Date.now() - 86400000 * 3).toISOString(), // 3 días atrás
-        },
-        {
-          id: "2",
-          text: "Sin duda alguna es un evento muy destacado de la ciudad, recomiendo ir con buen tiempo de anticipación para conseguir una vista agradable.",
-          author: {
-            id: "2",
-            name: "Juan Pablo",
-            email: "juan@example.com",
-            initials: "JP",
-          },
-          createdAt: new Date(Date.now() - 86400000 * 1).toISOString(), // 1 día atrás
-        },
-      ]
-      setComments(initialComments)
-      localStorage.setItem("comments", JSON.stringify(initialComments))
-    }
-  }, [])
-
-  // Guardar comentarios en localStorage cuando cambien
-  useEffect(() => {
-    localStorage.setItem("comments", JSON.stringify(comments))
-  }, [comments])
-
-  // Mostrar solo los 2 comentarios más recientes o todos
+  // Calculate visible comments based on showAllComments state
   const visibleComments = useMemo(() => {
-    // Se crea una copia para no mutar el estado original
-    const sortedComments = [...comments].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    )
-    return showAllComments ? sortedComments : sortedComments.slice(0, 2)
+    if (showAllComments) {
+      return comments
+    }
+    // Show only first 3 comments when collapsed
+    return comments.slice(0, 3)
   }, [comments, showAllComments])
 
   const toggleShowAllComments = useCallback(() => {
-    setShowAllComments((prev) => !prev)
+    setShowAllComments(prev => !prev)
   }, [])
 
-  const addComment = useCallback((text: string, author: User) => {
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      text,
-      author,
-      createdAt: new Date().toISOString(),
+  useEffect(() => {
+    const fetchAndStructureComments = async () => {
+      try {
+        const backendComments = await getComments()
+        const commentMap = new Map<string, Comment>()
+        const rootComments: Comment[] = []
+
+        // Create a users map with the logged-in user if available
+        const users: { [key: string]: User } = {}
+        if (user) {
+          users[user.id] = user
+        }
+
+        // First pass: transform and map all comments
+        backendComments.forEach((comment) => {
+          const transformedComment = transformComment(comment, users, user)
+          commentMap.set(comment.idComentario.toString(), transformedComment)
+        })
+
+        // Second pass: build the hierarchy
+        commentMap.forEach((comment) => {
+          if (comment.parentCommentId && commentMap.has(comment.parentCommentId)) {
+            const parent = commentMap.get(comment.parentCommentId)
+            parent?.replies.push(comment)
+          } else {
+            rootComments.push(comment)
+          }
+        })
+
+        setComments(rootComments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
+      } catch (error) {
+        console.error("Error fetching comments:", error)
+        // Set empty array on error
+        setComments([])
+      }
     }
-    setComments((prevComments) => [...prevComments, newComment])
-  }, [])
+
+    fetchAndStructureComments()
+  }, [user])
+
+  const addComment = useCallback(
+    async (text: string, parentCommentId: string | null) => {
+      if (!user) {
+        console.error("User must be logged in to comment")
+        alert("Debes iniciar sesión para comentar")
+        return
+      }
+      try {
+        const newBackendComment = await createComment({
+          content: text,
+          parentCommentId: parentCommentId ? parseInt(parentCommentId, 10) : null,
+        })
+        
+        // Transform the new comment with the logged-in user info
+        // Pass the user in the users map to ensure correct name mapping
+        const users = { [user.id]: user }
+        const newComment = transformComment(newBackendComment, users, user)
+
+        setComments((prevComments) => {
+          const newComments = [...prevComments]
+          if (newComment.parentCommentId) {
+            // Find parent and add reply
+            const findAndAddReply = (comments: Comment[]): Comment[] => {
+              return comments.map((c) => {
+                if (c.id === newComment.parentCommentId) {
+                  return { ...c, replies: [...c.replies, newComment] }
+                }
+                if (c.replies.length > 0) {
+                  return { ...c, replies: findAndAddReply(c.replies) }
+                }
+                return c
+              })
+            }
+            return findAndAddReply(newComments)
+          } else {
+            // Add root comment
+            return [newComment, ...newComments]
+          }
+        })
+      } catch (error) {
+        console.error("Failed to post comment:", error)
+        alert("Error al publicar el comentario. Por favor, intenta de nuevo.")
+      }
+    },
+    [user],
+  )
 
   const editComment = useCallback((id: string, text: string) => {
-    setComments((prevComments) =>
-      prevComments.map((comment) =>
-        comment.id === id
-          ? {
-              ...comment,
-              text,
-              updatedAt: new Date().toISOString(),
-            }
-          : comment,
-      ),
-    )
-  }, [])
+    if (!user) {
+      console.error("User must be logged in to edit comment")
+      return
+    }
+    
+    // Since the backend doesn't have an edit endpoint, we'll update locally
+    // In a real implementation, you would call an API endpoint here
+    setComments((prevComments) => {
+      const updateComment = (comments: Comment[]): Comment[] => {
+        return comments.map((c) => {
+          if (c.id === id && c.author.id === user.id) {
+            return { ...c, text, updatedAt: new Date().toISOString() }
+          }
+          if (c.replies.length > 0) {
+            return { ...c, replies: updateComment(c.replies) }
+          }
+          return c
+        })
+      }
+      return updateComment(prevComments)
+    })
+  }, [user])
 
-  const deleteComment = useCallback((id: string) => {
-    setComments((prevComments) =>
-      prevComments.filter((comment) => comment.id !== id),
-    )
-  }, [])
+  const deleteComment = useCallback(async (id: string) => {
+    if (!user) {
+      console.error("User must be logged in to delete comment")
+      alert("Debes iniciar sesión para eliminar comentarios")
+      return
+    }
+    
+    try {
+      await apiDeleteComment(parseInt(id, 10))
+      setComments((prevComments) => {
+        const filterReplies = (comments: Comment[]): Comment[] => {
+          return comments.filter((c) => c.id !== id).map((c) => ({ ...c, replies: filterReplies(c.replies) }))
+        }
+        return filterReplies(prevComments)
+      })
+    } catch (error) {
+      console.error("Failed to delete comment:", error)
+      alert("Error al eliminar el comentario. Asegúrate de que eres el autor del comentario.")
+    }
+  }, [user])
 
   const value = useMemo(
     () => ({
@@ -125,11 +227,7 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
     [comments, visibleComments, showAllComments, toggleShowAllComments, addComment, editComment, deleteComment],
   )
 
-  return (
-    <CommentsContext.Provider value={value}>
-      {children}
-    </CommentsContext.Provider>
-  )
+  return <CommentsContext.Provider value={value}>{children}</CommentsContext.Provider>
 }
 
 export function useComments() {
