@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Edit2, Trash2, X, Check, MessageSquare } from "lucide-react"
+import { Edit2, Trash2, X, Check, MessageSquare, AlertTriangle, Eye, EyeOff } from "lucide-react"
 import type { Comment } from "@/context/comments-context"
 import { useAuth } from "@/context/auth-context"
 import { useComments } from "@/context/comments-context"
@@ -16,16 +16,87 @@ interface CommentItemProps {
   readonly depth?: number
 }
 
+interface CommentActionsProps {
+  readonly comment: Comment
+  readonly isAuthor: boolean
+  readonly hasReported: boolean
+  readonly isEditing: boolean
+  readonly onReply: () => void
+  readonly onReport: () => void
+  readonly onEdit: () => void
+  readonly onDelete: () => void
+  readonly onHide: () => void
+  readonly onUnhide: () => void
+}
+
+function CommentActions({ 
+  comment, 
+  isAuthor, 
+  hasReported, 
+  isEditing,
+  onReply, 
+  onReport, 
+  onEdit, 
+  onDelete,
+  onHide,
+  onUnhide
+}: CommentActionsProps) {
+  const { user } = useAuth()
+  
+  if (!user) return null
+
+  return (
+    <div className="flex space-x-2">
+      <IconButton onClick={onReply} label="Responder comentario" variant="secondary">
+        <MessageSquare size={16} />
+      </IconButton>
+      
+      {!isAuthor && (
+        <IconButton 
+          onClick={onReport} 
+          label={hasReported ? "Ya reportaste este comentario" : "Reportar comentario"} 
+          variant={hasReported ? "secondary" : "danger"}
+          disabled={hasReported}
+        >
+          <AlertTriangle size={16} />
+        </IconButton>
+      )}
+      
+      {isAuthor && !isEditing && (
+        <>
+          <IconButton onClick={onEdit} label="Editar comentario" variant="secondary">
+            <Edit2 size={16} />
+          </IconButton>
+          <IconButton onClick={onDelete} label="Eliminar comentario" variant="danger">
+            <Trash2 size={16} />
+          </IconButton>
+          {comment.isHidden && (
+            <IconButton onClick={onUnhide} label="Mostrar comentario" variant="secondary">
+              <Eye size={16} />
+            </IconButton>
+          )}
+          {!comment.isHidden && comment.isReported && (
+            <IconButton onClick={onHide} label="Ocultar comentario" variant="secondary">
+              <EyeOff size={16} />
+            </IconButton>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(comment.text)
   const [isReplying, setIsReplying] = useState(false)
   const [replyText, setReplyText] = useState("")
   const { user } = useAuth()
-  const { editComment, deleteComment, addComment } = useComments()
+  const { editComment, deleteComment, addComment, reportComment, hideComment, unhideComment } = useComments()
 
   // Ensure both IDs are strings for comparison
-  const isAuthor = user && user.id && comment.author.id && (user.id.toString() === comment.author.id.toString())
+  const isAuthor = !!(user?.id && user.id.toString() === comment.author.id?.toString())
+  const hasReported = !!(user && comment.reportedBy?.includes(user.id))
 
   const handleEdit = () => {
     if (editText.trim() !== comment.text) {
@@ -52,6 +123,12 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
     setIsReplying(false)
   }
 
+  const handleReport = () => {
+    if (!hasReported) {
+      reportComment(comment.id)
+    }
+  }
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString("es-ES", {
@@ -68,13 +145,21 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
   const currentDepth = depth < maxDepth ? depth : maxDepth
 
   // Use predefined margin classes for Tailwind
-  const marginClass = currentDepth === 0 ? '' : 
-    currentDepth === 1 ? 'ml-8' : 
-    currentDepth === 2 ? 'ml-16' : 
-    'ml-24'
+  const getMarginClass = (depth: number) => {
+    switch (depth) {
+      case 0: return ''
+      case 1: return 'ml-8'
+      case 2: return 'ml-16'
+      default: return 'ml-24'
+    }
+  }
+  
+  const marginClass = getMarginClass(currentDepth)
+
+  const isHiddenForViewer = comment.isHidden && !isAuthor
 
   return (
-    <div className={`flex items-start gap-4 ${marginClass}`}>
+    <div className={`flex items-start gap-4 ${marginClass} ${isHiddenForViewer ? 'opacity-50' : ''}`}>
       <Avatar src={comment.author.avatar} alt={comment.author.name} initials={comment.author.initials} />
 
       <div className="flex-1">
@@ -86,49 +171,57 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
             <Typography variant="caption" color="secondary" className="mb-1">
               {formatDate(comment.createdAt)}
             </Typography>
+            {comment.isReported && (
+              <Typography variant="caption" className="text-orange-600">
+                {comment.reportedBy?.length} reporte(s)
+              </Typography>
+            )}
           </div>
 
-          <div className="flex space-x-2">
-            {user && (
-              <IconButton onClick={() => setIsReplying(!isReplying)} label="Responder comentario" variant="secondary">
-                <MessageSquare size={16} />
-              </IconButton>
-            )}
-            {isAuthor && !isEditing && (
-              <>
-                <IconButton onClick={() => setIsEditing(true)} label="Editar comentario" variant="secondary">
-                  <Edit2 size={16} />
-                </IconButton>
-                <IconButton onClick={() => deleteComment(comment.id)} label="Eliminar comentario" variant="danger">
-                  <Trash2 size={16} />
-                </IconButton>
-              </>
-            )}
-          </div>
+          <CommentActions
+            comment={comment}
+            isAuthor={isAuthor}
+            hasReported={hasReported}
+            isEditing={isEditing}
+            onReply={() => setIsReplying(!isReplying)}
+            onReport={handleReport}
+            onEdit={() => setIsEditing(true)}
+            onDelete={() => deleteComment(comment.id)}
+            onHide={() => hideComment(comment.id)}
+            onUnhide={() => unhideComment(comment.id)}
+          />
         </div>
 
-        {isEditing ? (
-          <div>
-            <TextArea
-              id={`edit-comment-${comment.id}`}
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              rows={3}
-              className="mb-2"
-            />
-            <div className="flex justify-end space-x-2">
-              <IconButton onClick={handleCancel} label="Cancelar edición" variant="secondary">
-                <X size={16} className="mr-1" /> Cancelar
-              </IconButton>
-              <IconButton onClick={handleEdit} label="Guardar cambios" variant="primary">
-                <Check size={16} className="mr-1" /> Guardar
-              </IconButton>
-            </div>
-          </div>
-        ) : (
-          <Typography variant="body" color="secondary">
-            {comment.text}
+        {isHiddenForViewer ? (
+          <Typography variant="body" color="secondary" className="italic">
+            [Este comentario ha sido ocultado por múltiples reportes]
           </Typography>
+        ) : (
+          <>
+            {isEditing ? (
+              <div>
+                <TextArea
+                  id={`edit-comment-${comment.id}`}
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  rows={3}
+                  className="mb-2"
+                />
+                <div className="flex justify-end space-x-2">
+                  <IconButton onClick={handleCancel} label="Cancelar edición" variant="secondary">
+                    <X size={16} className="mr-1" /> Cancelar
+                  </IconButton>
+                  <IconButton onClick={handleEdit} label="Guardar cambios" variant="primary">
+                    <Check size={16} className="mr-1" /> Guardar
+                  </IconButton>
+                </div>
+              </div>
+            ) : (
+              <Typography variant="body" color="secondary">
+                {comment.text}
+              </Typography>
+            )}
+          </>
         )}
 
         {isReplying && (

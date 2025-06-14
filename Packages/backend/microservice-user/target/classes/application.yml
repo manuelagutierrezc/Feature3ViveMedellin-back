@@ -1,14 +1,14 @@
 server:
-  port: ${PORT:8091}
+  port: ${PORT:8090}
 
 spring:
   application:
     name: microservice-user
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/UsuarioDB
-    username: postgres
-    password: 3201
+    url: ${URL_DB}
+    username: ${USERNAME_DB}
+    password: ${PASSWORD_DB}
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,11 +16,11 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 jwt:
-  secret: my-super-secret-key-which-is-long-enough-1234567890
+  secret: ${JWT_SECRET}
   expiration: 3600000
 
 springdoc:
-    swagger-ui:
-      path: /swagger-ui.html
-    api-docs:
-      path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs

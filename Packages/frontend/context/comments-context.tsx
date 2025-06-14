@@ -4,6 +4,7 @@ import type React from "react"
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react"
 import { getComments, createComment, deleteComment as apiDeleteComment, type BackendComment } from "@/lib/api/comments"
 import { useAuth } from "@/context/auth-context"
+import { useNotifications } from "@/context/notifications-context"
 import type { User } from "@/lib/api/auth"
 
 // Frontend-specific comment structure
@@ -20,6 +21,9 @@ export type Comment = {
   updatedAt?: string
   parentCommentId: string | null
   replies: Comment[]
+  isReported?: boolean
+  reportedBy?: string[]
+  isHidden?: boolean
 }
 
 type CommentsContextType = {
@@ -30,6 +34,9 @@ type CommentsContextType = {
   addComment: (text: string, parentCommentId: string | null) => Promise<void>
   editComment: (id: string, text: string) => void
   deleteComment: (id: string) => void
+  reportComment: (id: string) => void
+  hideComment: (id: string) => void
+  unhideComment: (id: string) => void
 }
 
 const CommentsContext = createContext<CommentsContextType | undefined>(undefined)
@@ -59,24 +66,77 @@ const transformComment = (comment: BackendComment, users: { [key: string]: User 
         .join(""),
     },
     createdAt: comment.fechaCreacion,
-    parentCommentId: comment.comentarioPadreId?.toString() || null,
+    parentCommentId: comment.comentarioPadreId?.toString() ?? null,
     replies: [], // Replies will be structured separately
+    isReported: false,
+    reportedBy: [],
+    isHidden: false,
   }
+}
+
+const updateCommentInTree = (comments: Comment[], updateFn: (comment: Comment) => Comment): Comment[] => {
+  return comments.map(comment => ({
+    ...updateFn(comment),
+    replies: comment.replies.length > 0 ? updateCommentInTree(comment.replies, updateFn) : []
+  }))
+}
+
+const addReplyToParent = (comments: Comment[], parentId: string, newReply: Comment): Comment[] => {
+  return comments.map(comment => {
+    if (comment.id === parentId) {
+      return { ...comment, replies: [...comment.replies, newReply] }
+    }
+    if (comment.replies.length > 0) {
+      return { ...comment, replies: addReplyToParent(comment.replies, parentId, newReply) }
+    }
+    return comment
+  })
+}
+
+const filterCommentAndReplies = (comments: Comment[], commentId: string): Comment[] => {
+  return comments
+    .filter(comment => comment.id !== commentId)
+    .map(comment => ({
+      ...comment,
+      replies: filterCommentAndReplies(comment.replies, commentId)
+    }))
 }
 
 export function CommentsProvider({ children }: { readonly children: React.ReactNode }) {
   const [comments, setComments] = useState<Comment[]>([])
   const [showAllComments, setShowAllComments] = useState(false)
   const { user } = useAuth()
+  const { addNotification } = useNotifications()
 
   // Calculate visible comments based on showAllComments state
   const visibleComments = useMemo(() => {
+    // Filter out hidden comments unless the user is the author
+    const filterHidden = (comment: Comment): Comment | null => {
+      if (comment.isHidden && comment.author.id !== user?.id) {
+        return null
+      }
+      
+      // Process replies recursively
+      const filteredReplies = comment.replies
+        .map(filterHidden)
+        .filter((reply): reply is Comment => reply !== null)
+      
+      return {
+        ...comment,
+        replies: filteredReplies
+      }
+    }
+    
+    const filteredComments = comments
+      .map(filterHidden)
+      .filter((comment): comment is Comment => comment !== null)
+    
     if (showAllComments) {
-      return comments
+      return filteredComments
     }
     // Show only first 3 comments when collapsed
-    return comments.slice(0, 3)
-  }, [comments, showAllComments])
+    return filteredComments.slice(0, 3)
+  }, [comments, showAllComments, user?.id])
 
   const toggleShowAllComments = useCallback(() => {
     setShowAllComments(prev => !prev)
@@ -111,7 +171,10 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
           }
         })
 
-        setComments(rootComments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
+        const sortedComments = [...rootComments].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        setComments(sortedComments)
       } catch (error) {
         console.error("Error fetching comments:", error)
         // Set empty array on error
@@ -135,38 +198,33 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
           parentCommentId: parentCommentId ? parseInt(parentCommentId, 10) : null,
         })
         
-        // Transform the new comment with the logged-in user info
-        // Pass the user in the users map to ensure correct name mapping
         const users = { [user.id]: user }
         const newComment = transformComment(newBackendComment, users, user)
 
-        setComments((prevComments) => {
-          const newComments = [...prevComments]
+        setComments(prevComments => {
           if (newComment.parentCommentId) {
-            // Find parent and add reply
-            const findAndAddReply = (comments: Comment[]): Comment[] => {
-              return comments.map((c) => {
-                if (c.id === newComment.parentCommentId) {
-                  return { ...c, replies: [...c.replies, newComment] }
-                }
-                if (c.replies.length > 0) {
-                  return { ...c, replies: findAndAddReply(c.replies) }
-                }
-                return c
-              })
-            }
-            return findAndAddReply(newComments)
-          } else {
-            // Add root comment
-            return [newComment, ...newComments]
+            return addReplyToParent(prevComments, newComment.parentCommentId, newComment)
           }
+          return [newComment, ...prevComments]
+        })
+
+        addNotification({
+          type: "success",
+          title: "Comentario publicado",
+          message: parentCommentId ? "Tu respuesta se ha publicado correctamente" : "Tu comentario se ha publicado correctamente",
+          duration: 3000
         })
       } catch (error) {
         console.error("Failed to post comment:", error)
-        alert("Error al publicar el comentario. Por favor, intenta de nuevo.")
+        addNotification({
+          type: "error",
+          title: "Error al publicar",
+          message: "No se pudo publicar el comentario. Por favor, intenta de nuevo.",
+          duration: 5000
+        })
       }
     },
-    [user],
+    [user, addNotification],
   )
 
   const editComment = useCallback((id: string, text: string) => {
@@ -175,23 +233,22 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
       return
     }
     
-    // Since the backend doesn't have an edit endpoint, we'll update locally
-    // In a real implementation, you would call an API endpoint here
-    setComments((prevComments) => {
-      const updateComment = (comments: Comment[]): Comment[] => {
-        return comments.map((c) => {
-          if (c.id === id && c.author.id === user.id) {
-            return { ...c, text, updatedAt: new Date().toISOString() }
-          }
-          if (c.replies.length > 0) {
-            return { ...c, replies: updateComment(c.replies) }
-          }
-          return c
-        })
-      }
-      return updateComment(prevComments)
+    setComments(prevComments => 
+      updateCommentInTree(prevComments, comment => {
+        if (comment.id === id && comment.author.id === user.id) {
+          return { ...comment, text, updatedAt: new Date().toISOString() }
+        }
+        return comment
+      })
+    )
+
+    addNotification({
+      type: "success",
+      title: "Comentario actualizado",
+      message: "Tu comentario se ha editado correctamente",
+      duration: 3000
     })
-  }, [user])
+  }, [user, addNotification])
 
   const deleteComment = useCallback(async (id: string) => {
     if (!user) {
@@ -202,17 +259,82 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
     
     try {
       await apiDeleteComment(parseInt(id, 10))
-      setComments((prevComments) => {
-        const filterReplies = (comments: Comment[]): Comment[] => {
-          return comments.filter((c) => c.id !== id).map((c) => ({ ...c, replies: filterReplies(c.replies) }))
-        }
-        return filterReplies(prevComments)
+      setComments(prevComments => filterCommentAndReplies(prevComments, id))
+      
+      addNotification({
+        type: "success",
+        title: "Comentario eliminado",
+        message: "El comentario se ha eliminado correctamente",
+        duration: 3000
       })
     } catch (error) {
       console.error("Failed to delete comment:", error)
-      alert("Error al eliminar el comentario. Asegúrate de que eres el autor del comentario.")
+      addNotification({
+        type: "error",
+        title: "Error al eliminar",
+        message: "No se pudo eliminar el comentario. Asegúrate de ser el autor.",
+        duration: 5000
+      })
     }
-  }, [user])
+  }, [user, addNotification])
+
+  const reportComment = useCallback((id: string) => {
+    if (!user) {
+      console.error("User must be logged in to report comment")
+      alert("Debes iniciar sesión para reportar comentarios")
+      return
+    }
+
+    setComments(prevComments => 
+      updateCommentInTree(prevComments, comment => {
+        if (comment.id === id) {
+          const reportedBy = comment.reportedBy || []
+          if (!reportedBy.includes(user.id)) {
+            const willBeHidden = reportedBy.length >= 2
+            
+            addNotification({
+              type: "warning",
+              title: "Comentario reportado",
+              message: willBeHidden 
+                ? "El comentario ha sido ocultado automáticamente por múltiples reportes" 
+                : "Gracias por reportar el comentario. Lo revisaremos pronto.",
+              duration: 4000
+            })
+            
+            return { 
+              ...comment, 
+              isReported: true,
+              reportedBy: [...reportedBy, user.id],
+              isHidden: willBeHidden
+            }
+          }
+        }
+        return comment
+      })
+    )
+  }, [user, addNotification])
+
+  const hideComment = useCallback((id: string) => {
+    setComments(prevComments => 
+      updateCommentInTree(prevComments, comment => {
+        if (comment.id === id) {
+          return { ...comment, isHidden: true }
+        }
+        return comment
+      })
+    )
+  }, [])
+
+  const unhideComment = useCallback((id: string) => {
+    setComments(prevComments => 
+      updateCommentInTree(prevComments, comment => {
+        if (comment.id === id) {
+          return { ...comment, isHidden: false }
+        }
+        return comment
+      })
+    )
+  }, [])
 
   const value = useMemo(
     () => ({
@@ -223,8 +345,11 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
       addComment,
       editComment,
       deleteComment,
+      reportComment,
+      hideComment,
+      unhideComment,
     }),
-    [comments, visibleComments, showAllComments, toggleShowAllComments, addComment, editComment, deleteComment],
+    [comments, visibleComments, showAllComments, toggleShowAllComments, addComment, editComment, deleteComment, reportComment, hideComment, unhideComment],
   )
 
   return <CommentsContext.Provider value={value}>{children}</CommentsContext.Provider>

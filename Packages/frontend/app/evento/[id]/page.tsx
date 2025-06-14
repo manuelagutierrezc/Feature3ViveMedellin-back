@@ -5,11 +5,10 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { useAuth } from "@/context/auth-context"
-//import LoginModal from "@/components/auth/login-modal"
 import CommentsSection from "@/components/organisms/comments-section"
 
 export default function EventoPage() {
-  //const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  
   const { isAuthenticated } = useAuth()
 
   return (
@@ -109,8 +108,6 @@ export default function EventoPage() {
           </div>
         </div>
       </main>
-
-      {/*<LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />*/}
     </div>
   )
 }
