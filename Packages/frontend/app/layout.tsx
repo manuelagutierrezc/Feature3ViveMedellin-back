@@ -4,6 +4,9 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/context/auth-context"
 import { CommentsProvider } from "@/context/comments-context"
+import { NotificationsProvider } from "@/context/notifications-context"
+import Header from "@/components/organisms/header"
+import Notifications from "@/components/organisms/notifications"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,7 +24,13 @@ export default function RootLayout({
     <html lang="es">
       <body className={inter.className}>
         <AuthProvider>
-          <CommentsProvider>{children}</CommentsProvider>
+          <NotificationsProvider>
+            <CommentsProvider>
+              <Header />
+              <Notifications />
+              {children}
+            </CommentsProvider>
+          </NotificationsProvider>
         </AuthProvider>
       </body>
     </html>

@@ -28,7 +28,7 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
 
   // Leer JWT desde cookie (utilidad básica)
   const getTokenFromCookies = () => {
-    const match = document.cookie.match(/(^| )jwt=([^;]+)/);
+    const match = /(^| )jwt=([^;]+)/.exec(document.cookie);
     return match ? match[2] : null;
   };
 
@@ -55,9 +55,9 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
         
         // The backend uses 'userId' claim, not 'sub'
         const userFromToken: User = {
-          id: decodedToken.userId?.toString() || decodedToken.sub || "",
-          userName: decodedToken.name || decodedToken.userName || "Usuario",
-          email: decodedToken.email || "",
+          id: decodedToken.userId?.toString() ?? decodedToken.sub ?? "",
+          userName: decodedToken.name ?? decodedToken.userName ?? "Usuario",
+          email: decodedToken.email ?? "",
         };
         setUser(userFromToken);
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -91,8 +91,8 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
     const loggedInUser: User = {
-      id: decodedToken.userId?.toString() || decodedToken.sub || "",
-      userName: userFromLogin.userName || decodedToken.name || decodedToken.userName || "Usuario",
+      id: decodedToken.userId?.toString() ?? decodedToken.sub ?? "",
+      userName: userFromLogin.userName ?? decodedToken.name ?? decodedToken.userName ?? "Usuario",
       email: credentials.email,
     };
 
