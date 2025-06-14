@@ -8,3 +8,7 @@
 .env.development
 .env.test
 .env.production
+.target/
+
+# en tu .gitignore
+**/target/

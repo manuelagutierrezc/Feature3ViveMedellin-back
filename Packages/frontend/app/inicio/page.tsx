@@ -1,81 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-import { ChevronDown } from "lucide-react";
-import { useAuth } from "@/context/auth-context";
-import LoginModal from "@/components/auth/login-modal";
-import UserMenu from "@/components/user-menu";
+import Header from "@/components/organisms/header";
 
-export default function Home() {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
-
+export default function InicioPage() {
   return (
     <div className="min-h-screen bg-[#f2f7f5]">
-      {/* HEADER */}
-      <header className="bg-[#f2f7f5] py-5 px-6 flex items-center justify-between border-b border-[#e2e8f0]">
-        <div className="flex items-center">
-          <Image
-            src="/logo.png"
-            alt="ViveMedellín Logo"
-            width={180}
-            height={48}
-          />
-        </div>
-
-        <div className="flex items-center gap-5">
-          {/* Buscador */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Realiza una búsqueda ..."
-              className="w-[300px] pl-10 pr-4 py-2 rounded-md border border-[#e2e8f0] text-sm focus:outline-none"
-            />
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <svg
-                className="w-4 h-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </div>
-          </div>
-
-          {/* Botones de navegación */}
-          <button className="bg-[#faae2b] text-[#00473e] font-medium px-4 py-2 rounded-md flex items-center text-sm transition-all duration-300 transform hover:bg-[#00473e] hover:text-white hover:scale-105">
-            Explorar <ChevronDown className="ml-1 h-4 w-4" />
-          </button>
-
-          <button className="text-[#00473e] font-medium text-sm hover:text-white hover:bg-[#00473e] px-4 py-2 rounded transition-transform duration-300 transform hover:scale-105">
-            <span className="flex items-center gap-1">
-              Actividad <ChevronDown className="h-4 w-4" />
-            </span>
-          </button>
-
-          <button className="text-[#00473e] font-medium text-sm hover:text-white hover:bg-[#00473e] px-4 py-2 rounded transition-transform duration-300 transform hover:scale-105">
-            Registro
-          </button>
-
-          {isAuthenticated ? (
-            <UserMenu />
-          ) : (
-            <button
-              onClick={() => setIsLoginModalOpen(true)}
-              className="text-[#00473e] font-medium text-sm transition-all duration-300 transform hover:text-[#faae2b] hover:scale-105"
-            >
-              Iniciar Sesión
-            </button>
-          )}
-        </div>
-      </header>
+      <Header />
       <main className="max-w-[1200px] mx-auto px-1 py-3">
         <h1 className="text-[35px] font-bold text-[#00473e] mb-4 leading-tight">
           ¡Descubre actividades locales!
@@ -205,12 +136,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-
-      {/* Modal de Login */}
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
     </div>
   );
 }
