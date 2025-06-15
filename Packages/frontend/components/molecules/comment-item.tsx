@@ -173,7 +173,7 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
             </Typography>
             {comment.reportCount && comment.reportCount > 0 && (
               <Typography variant="caption" className="text-orange-600">
-                {comment.reportCount} reporte(s)
+                {comment.reportCount} reporte{comment.reportCount === 1 ? '' : 's'}
               </Typography>
             )}
           </div>
