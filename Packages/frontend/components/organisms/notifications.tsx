@@ -1,8 +1,8 @@
 "use client"
 
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react"
-import { useNotifications } from "@/context/notifications-context"
-import type { NotificationType } from "@/context/notifications-context"
+import { useNotifications } from "@/context/notifications/notifications-context"
+import type { NotificationType } from "@/types/notifications"
 
 const iconMap: Record<NotificationType, React.ElementType> = {
   success: CheckCircle,

@@ -1,3 +1,4 @@
+"use client"
 import Typography from "@/components/atoms/typography"
 
 export default function EventDetails() {

@@ -5,8 +5,8 @@ import type React from "react"
 import { useState } from "react"
 import Button from "@/components/atoms/Button"
 import TextArea from "@/components/atoms/text-area"
-import { useAuth } from "@/context/auth-context"
-import { useComments } from "@/context/comments-context"
+import { useAuth } from "@/context/auth/auth-context"
+import { useComments } from "@/context/comments/comments-context"
 
 export default function CommentForm() {
   const [text, setText] = useState("")

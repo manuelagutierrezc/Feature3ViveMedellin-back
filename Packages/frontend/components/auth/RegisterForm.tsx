@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { registerUser, RegisterRequest } from '@/lib/api/auth';
-import { useNotifications } from '@/context/notifications-context';
+import { useNotifications } from '@/context/notifications/notifications-context';
 import { AxiosError } from 'axios';
 import Image from "next/image";
 import { Facebook, Chrome } from "lucide-react";

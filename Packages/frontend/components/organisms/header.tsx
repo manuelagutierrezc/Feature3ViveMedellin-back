@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
 import SearchBar from "../molecules/search-bar"
-import { useAuth } from "../../context/auth-context"
+import { useAuth } from "@/context/auth/auth-context"
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth()

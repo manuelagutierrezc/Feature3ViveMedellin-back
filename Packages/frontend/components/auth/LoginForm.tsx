@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth-context";
-import { useNotifications } from "@/context/notifications-context";
+import { useAuth } from "@/context/auth/auth-context";
+import { useNotifications } from "@/context/notifications/notifications-context";
 import type { LoginRequest } from "@/lib/api/auth";
 import type { AxiosError } from "axios";
 import Image from "next/image";

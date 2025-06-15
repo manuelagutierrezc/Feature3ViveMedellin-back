@@ -4,8 +4,8 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 import CommentItem from "@/components/molecules/comment-item"
 import CommentForm from "@/components/molecules/comment-form"
 import Typography from "@/components/atoms/typography"
-import { useComments } from "@/context/comments-context"
-import { useAuth } from "@/context/auth-context"
+import { useComments } from "@/context/comments/comments-context"
+import { useAuth } from "@/context/auth/auth-context"
 
 export default function CommentsSection() {
   const { comments, visibleComments, showAllComments, toggleShowAllComments } = useComments()
