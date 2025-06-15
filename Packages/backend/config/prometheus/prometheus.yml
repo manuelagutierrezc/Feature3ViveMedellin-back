@@ -1,0 +1,11 @@
+scrape_configs:
+  - job_name: 'microservice-comment'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:8091']
+
+  - job_name: 'microservice-user'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: [ 'host.docker.internal:8090' ]
+
