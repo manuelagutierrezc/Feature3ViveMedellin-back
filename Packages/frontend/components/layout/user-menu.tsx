@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { LogOut } from "lucide-react";
-import { useAuth } from "@/context/auth-context";
+import { useAuth } from "@/context/auth/auth-context";
 
 // Helper para sacar iniciales de un nombre de usuario
 function getInitials(name: string) {
