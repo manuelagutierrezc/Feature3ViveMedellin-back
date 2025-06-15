@@ -75,7 +75,7 @@ function CommentActions({
               <Eye size={16} />
             </IconButton>
           )}
-          {!comment.isHidden && comment.isReported && (
+          {!comment.isHidden && comment.reportCount && comment.reportCount > 0 && (
             <IconButton onClick={onHide} label="Ocultar comentario" variant="secondary">
               <EyeOff size={16} />
             </IconButton>
@@ -96,7 +96,7 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
 
   // Ensure both IDs are strings for comparison
   const isAuthor = !!(user?.id && user.id.toString() === comment.author.id?.toString())
-  const hasReported = !!(user && comment.reportedBy?.includes(user.id))
+  const hasReported = comment.reportedByCurrentUser ?? false
 
   const handleEdit = () => {
     if (editText.trim() !== comment.text) {
@@ -171,9 +171,9 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
             <Typography variant="caption" color="secondary" className="mb-1">
               {formatDate(comment.createdAt)}
             </Typography>
-            {comment.isReported && (
+            {comment.reportCount && comment.reportCount > 0 && (
               <Typography variant="caption" className="text-orange-600">
-                {comment.reportedBy?.length} reporte(s)
+                {comment.reportCount} reporte(s)
               </Typography>
             )}
           </div>

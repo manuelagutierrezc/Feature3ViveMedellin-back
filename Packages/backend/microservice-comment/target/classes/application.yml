@@ -6,17 +6,17 @@ spring:
         name: microservice-comment
     datasource:
         driver-class-name: org.postgresql.Driver
-        url: jdbc:postgresql://aws-0-us-east-2.pooler.supabase.com:6543/postgres
-        username: postgres.uvaiaecevrtliujmrllw
-        password: rMQ0aAPZ39GKI3m1
+        url: ${URL_DB}
+        username: ${USERNAME_DB}
+        password: ${PASSWORD_DB}
     jpa:
         hibernate:
-            ddl-auto: create
+            ddl-auto: update
         database: postgresql
         database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 jwt:
-    secret: my-super-secret-key-which-is-long-enough-1234567890
+    secret: ${JWT_SECRET}
 
 springdoc:
     swagger-ui:

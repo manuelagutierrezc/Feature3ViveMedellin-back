@@ -12,6 +12,7 @@ export interface BackendComment {
   fechaCreacion: string;
   idUsuario: number;
   comentarioPadreId: number | null;
+  reporteCuenta: number;
   // userName is not provided by the comment microservice directly
 }
 
@@ -33,4 +34,17 @@ export const getReplies = async (commentId: number) => {
 
 export const deleteComment = async (commentId: number) => {
   await api.delete(`/comentarios/${commentId}`);
-}; 
+};
+
+export async function reportComment(commentId: number): Promise<void> {
+  const response = await fetch(`/api/comentarios/${commentId}/reportar`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to report comment')
+  }
+} 

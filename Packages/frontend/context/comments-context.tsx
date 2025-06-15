@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react"
-import { getComments, createComment, deleteComment as apiDeleteComment, type BackendComment } from "@/lib/api/comments"
+import { getComments, createComment, deleteComment as apiDeleteComment, reportComment as apiReportComment, type BackendComment } from "@/lib/api/comments"
 import { useAuth } from "@/context/auth-context"
 import { useNotifications } from "@/context/notifications-context"
 import type { User } from "@/lib/api/auth"
@@ -21,9 +21,9 @@ export type Comment = {
   updatedAt?: string
   parentCommentId: string | null
   replies: Comment[]
-  isReported?: boolean
-  reportedBy?: string[]
+  reportCount?: number
   isHidden?: boolean
+  reportedByCurrentUser?: boolean
 }
 
 type CommentsContextType = {
@@ -42,17 +42,16 @@ type CommentsContextType = {
 const CommentsContext = createContext<CommentsContextType | undefined>(undefined)
 
 // Helper to transform backend comments to frontend format
-const transformComment = (comment: BackendComment, users: { [key: string]: User | undefined }, loggedInUser: User | null): Comment => {
+const transformComment = (comment: BackendComment, loggedInUser: User | null): Comment => {
   const authorId = comment.idUsuario.toString()
   
   // Check if this comment belongs to the logged-in user
   const isLoggedInUserComment = loggedInUser && loggedInUser.id === authorId
   
-  // If it's the logged-in user's comment, use their name
-  // Otherwise, try to find in users map or use generic name
+  // Si es el usuario logueado, muestra su nombre, si no, muestra el idUsuario
   const authorName = isLoggedInUserComment 
     ? loggedInUser.userName 
-    : (users[authorId]?.userName ?? "Usuario")
+    : authorId
 
   return {
     id: comment.idComentario.toString(),
@@ -60,17 +59,14 @@ const transformComment = (comment: BackendComment, users: { [key: string]: User 
     author: {
       id: authorId,
       name: authorName,
-      initials: authorName
-        .split(" ")
-        .map((n: string) => n[0])
-        .join(""),
+      initials: authorName[0]?.toUpperCase() ?? "",
     },
     createdAt: comment.fechaCreacion,
     parentCommentId: comment.comentarioPadreId?.toString() ?? null,
     replies: [], // Replies will be structured separately
-    isReported: false,
-    reportedBy: [],
-    isHidden: false,
+    reportCount: comment.reporteCuenta,
+    isHidden: comment.reporteCuenta >= 3,
+    reportedByCurrentUser: false, // Por defecto, el usuario actual no ha reportado
   }
 }
 
@@ -146,18 +142,13 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
     const fetchAndStructureComments = async () => {
       try {
         const backendComments = await getComments()
+        
         const commentMap = new Map<string, Comment>()
         const rootComments: Comment[] = []
 
-        // Create a users map with the logged-in user if available
-        const users: { [key: string]: User } = {}
-        if (user) {
-          users[user.id] = user
-        }
-
         // First pass: transform and map all comments
         backendComments.forEach((comment) => {
-          const transformedComment = transformComment(comment, users, user)
+          const transformedComment = transformComment(comment, user)
           commentMap.set(comment.idComentario.toString(), transformedComment)
         })
 
@@ -177,13 +168,18 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
         setComments(sortedComments)
       } catch (error) {
         console.error("Error fetching comments:", error)
-        // Set empty array on error
+        addNotification({
+          type: "error",
+          title: "Error",
+          message: "No se pudieron cargar los comentarios",
+          duration: 5000
+        })
         setComments([])
       }
     }
 
     fetchAndStructureComments()
-  }, [user])
+  }, [user, addNotification])
 
   const addComment = useCallback(
     async (text: string, parentCommentId: string | null) => {
@@ -198,8 +194,7 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
           parentCommentId: parentCommentId ? parseInt(parentCommentId, 10) : null,
         })
         
-        const users = { [user.id]: user }
-        const newComment = transformComment(newBackendComment, users, user)
+        const newComment = transformComment(newBackendComment, user)
 
         setComments(prevComments => {
           if (newComment.parentCommentId) {
@@ -278,40 +273,46 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
     }
   }, [user, addNotification])
 
-  const reportComment = useCallback((id: string) => {
+  const reportComment = useCallback(async (id: string) => {
     if (!user) {
       console.error("User must be logged in to report comment")
       alert("Debes iniciar sesión para reportar comentarios")
       return
     }
 
-    setComments(prevComments => 
-      updateCommentInTree(prevComments, comment => {
-        if (comment.id === id) {
-          const reportedBy = comment.reportedBy || []
-          if (!reportedBy.includes(user.id)) {
-            const willBeHidden = reportedBy.length >= 2
-            
-            addNotification({
-              type: "warning",
-              title: "Comentario reportado",
-              message: willBeHidden 
-                ? "El comentario ha sido ocultado automáticamente por múltiples reportes" 
-                : "Gracias por reportar el comentario. Lo revisaremos pronto.",
-              duration: 4000
-            })
-            
+    try {
+      await apiReportComment(parseInt(id, 10))
+      
+      setComments(prevComments => 
+        updateCommentInTree(prevComments, comment => {
+          if (comment.id === id) {
+            const newReportCount = (comment.reportCount ?? 0) + 1
             return { 
               ...comment, 
-              isReported: true,
-              reportedBy: [...reportedBy, user.id],
-              isHidden: willBeHidden
+              reportedByCurrentUser: true,
+              reportCount: newReportCount,
+              isHidden: newReportCount >= 3
             }
           }
-        }
-        return comment
+          return comment
+        })
+      )
+
+      addNotification({
+        type: "warning",
+        title: "Comentario reportado",
+        message: "Gracias por reportar el comentario. Lo revisaremos pronto.",
+        duration: 4000
       })
-    )
+    } catch (error) {
+      console.error("Failed to report comment:", error)
+      addNotification({
+        type: "error",
+        title: "Error al reportar",
+        message: "No se pudo reportar el comentario. Por favor, intenta de nuevo.",
+        duration: 5000
+      })
+    }
   }, [user, addNotification])
 
   const hideComment = useCallback((id: string) => {

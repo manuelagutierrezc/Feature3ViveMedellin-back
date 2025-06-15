@@ -22,89 +22,131 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Guardar usuario en localStorage (solo en cliente)
+const saveUserToStorage = (user: User) => {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('user', JSON.stringify(user));
+    } catch (error) {
+      console.error('Error saving user to storage:', error);
+    }
+  }
+};
+
+// Obtener usuario de localStorage (solo en cliente)
+const getUserFromStorage = (): User | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
+  try {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  } catch (error) {
+    console.error('Error getting user from storage:', error);
+    return null;
+  }
+};
+
+// Leer JWT desde cookie
+const getTokenFromCookies = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const match = /(^| )jwt=([^;]+)/.exec(document.cookie);
+  return match ? match[2] : null;
+};
+
 export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<AuthContextType["user"]>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Leer JWT desde cookie (utilidad básica)
-  const getTokenFromCookies = () => {
-    const match = /(^| )jwt=([^;]+)/.exec(document.cookie);
-    return match ? match[2] : null;
-  };
-
   // Verificar si hay un token y obtener el usuario
   useEffect(() => {
-    const verifyToken = async () => {
-      const token = getTokenFromCookies();
-      if (!token) {
-        console.log("🔐 No hay token en cookies");
-        setIsLoading(false);
-        return;
-      }
-
+    const initAuth = async () => {
       try {
-        // Decode the token to get user info
+        const token = getTokenFromCookies();
+        const storedUser = getUserFromStorage();
+
+        if (!token) {
+          console.log("🔐 No hay token en cookies");
+          setUser(null);
+          setIsLoading(false);
+          return;
+        }
+
+        // Verificar que el token sea válido
         const decodedToken = jwtDecode<{
-          sub?: string;
           userId?: number | string;
-          name?: string;
-          userName?: string;
-          email?: string;
+          sub?: string;
+          exp?: number;
         }>(token);
-        console.log("🔍 Token decodificado:", decodedToken);
-        
-        // The backend uses 'userId' claim, not 'sub'
-        const userFromToken: User = {
-          id: decodedToken.userId?.toString() ?? decodedToken.sub ?? "",
-          userName: decodedToken.name ?? decodedToken.userName ?? "Usuario",
-          email: decodedToken.email ?? "",
-        };
-        setUser(userFromToken);
+
+        // Verificar si el token ha expirado
+        if (decodedToken.exp && decodedToken.exp * 1000 < Date.now()) {
+          console.log("⏰ Token expirado");
+          logout();
+          return;
+        }
+
+        const userId = decodedToken.userId?.toString() ?? decodedToken.sub;
+        if (!userId) {
+          throw new Error('No user ID in token');
+        }
+
+        // Configurar token globalmente
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        console.log("✅ Usuario restaurado desde token:", userFromToken);
+
+        // Si tenemos un usuario almacenado con el mismo ID, usarlo
+        if (storedUser && storedUser.id === userId) {
+          setUser(storedUser);
+          console.log("✅ Usuario restaurado desde storage:", storedUser);
+        } else {
+          // Si no, necesitamos obtener la información del usuario
+          // Por ahora usaremos la información del storage si existe
+          console.warn("⚠️ No se encontró información del usuario");
+          logout();
+        }
       } catch (err) {
-        console.error("⛔ Fallo al decodificar el token:", err);
-        logout(); // Clear invalid token
+        console.error("⛔ Error de autenticación:", err);
+        logout();
       } finally {
         setIsLoading(false);
       }
     };
 
-    verifyToken();
+    initAuth();
   }, []);
 
   // Función de login
   const login = async (credentials: LoginRequest) => {
-    console.log("🔵 Intentando iniciar sesión con:", credentials.email);
-    const { token, user: userFromLogin } = await loginUser(credentials);
-    const decodedToken = jwtDecode<{
-      sub?: string;
-      userId?: number | string;
-      name?: string;
-      userName?: string;
-      email?: string;
-    }>(token);
+    try {
+      console.log("🔵 Intentando iniciar sesión con:", credentials.email);
+      const { token, user: userFromLogin } = await loginUser(credentials);
+      
+      // Guardar en cookie (httpOnly sería mejor, pero requiere cambios en el backend)
+      document.cookie = `jwt=${token};path=/;max-age=${60 * 60 * 24 * 7};SameSite=Lax`; // 7 días
+      
+      // Configurar token globalmente
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-    // Guardar en cookie
-    document.cookie = `jwt=${token};path=/;max-age=${60 * 60 * 24}`; // 1 día
-    // Configurar token globalmente
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      // Guardar usuario en estado y storage
+      setUser(userFromLogin);
+      saveUserToStorage(userFromLogin);
 
-    const loggedInUser: User = {
-      id: decodedToken.userId?.toString() ?? decodedToken.sub ?? "",
-      userName: userFromLogin.userName ?? decodedToken.name ?? decodedToken.userName ?? "Usuario",
-      email: credentials.email,
-    };
-
-    // Establecer usuario
-    setUser(loggedInUser);
-
-    console.log("✅ Login correcto, usuario:", loggedInUser);
+      console.log("✅ Login correcto, usuario:", userFromLogin);
+    } catch (error) {
+      console.error("⛔ Error en login:", error);
+      throw error;
+    }
   };
 
   // Función de logout
   const logout = () => {
-    document.cookie = "jwt=;path=/;max-age=0";
+    if (typeof window !== 'undefined') {
+      document.cookie = "jwt=;path=/;max-age=0;SameSite=Lax";
+      localStorage.removeItem('user');
+    }
     delete axios.defaults.headers.common["Authorization"];
     setUser(null);
     console.log("👋 Sesión cerrada");
