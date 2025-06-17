@@ -45,7 +45,7 @@ export default function LoginForm() {
       
       router.push("/evento/1");
     } catch (err: unknown) {
-      const axiosErr = err as AxiosError;
+      const axiosErr = err as AxiosError<{ message?: string }>;
       console.error("⛔ Error en login:", axiosErr);
       const errorMessage = axiosErr.response?.data?.message ?? "Error al iniciar sesión. Por favor, intenta de nuevo.";
       setError(errorMessage);
