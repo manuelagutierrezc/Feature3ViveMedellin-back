@@ -50,7 +50,8 @@ export const loginUser = async (credentials: LoginRequest): Promise<LoginRespons
     // Manually construct the user object for the frontend context
     // The ID will be added in the auth-context from the decoded token
     const user = {
-      userName,
+      id: '', // Will be filled from decoded token in auth-context
+      userName: userName || 'Usuario', // Ensure userName is not empty
       email: credentials.email,
     };
 

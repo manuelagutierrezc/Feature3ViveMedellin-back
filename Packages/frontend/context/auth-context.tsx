@@ -53,10 +53,10 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
         }>(token);
         console.log("🔍 Token decodificado:", decodedToken);
         
-        // The backend uses 'userId' claim, not 'sub'
+        // The backend uses 'sub' (subject) for userName and 'userId' claim for the ID
         const userFromToken: User = {
-          id: decodedToken.userId?.toString() ?? decodedToken.sub ?? "",
-          userName: decodedToken.name ?? decodedToken.userName ?? "Usuario",
+          id: decodedToken.userId?.toString() ?? "",
+          userName: decodedToken.sub || "Usuario", // 'sub' contains the userName from backend
           email: decodedToken.email ?? "",
         };
         setUser(userFromToken);
@@ -90,9 +90,10 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
     // Configurar token globalmente
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
+    // Use the same logic as in token verification
     const loggedInUser: User = {
-      id: decodedToken.userId?.toString() ?? decodedToken.sub ?? "",
-      userName: userFromLogin.userName ?? decodedToken.name ?? decodedToken.userName ?? "Usuario",
+      id: decodedToken.userId?.toString() ?? "",
+      userName: decodedToken.sub || userFromLogin.userName || "Usuario", // Prefer 'sub' from token
       email: credentials.email,
     };
 

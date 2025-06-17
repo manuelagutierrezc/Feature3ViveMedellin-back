@@ -90,7 +90,9 @@ const transformComment = (comment: BackendComment, users: { [key: string]: User 
   
   if (isLoggedInUserComment) {
     // If it's the logged-in user's comment, use their name and save to cache
-    authorName = loggedInUser.userName || `Participante ${authorId}`;
+    authorName = loggedInUser.userName && loggedInUser.userName !== 'Usuario' 
+      ? loggedInUser.userName 
+      : `Participante ${authorId}`;
     saveUserToCache(authorId, authorName);
   } else if (users[authorId]?.userName) {
     // If we have user info in the users map, use it and save to cache
@@ -229,7 +231,8 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
       const users: { [key: string]: User } = {}
       if (user) {
         users[user.id] = user
-        console.log("👤 Usuario actual:", user.userName, "(ID:", user.id, ")")
+        const displayName = user.userName && user.userName !== 'Usuario' ? user.userName : `Usuario ${user.id}`;
+        console.log("👤 Usuario actual:", displayName, "(ID:", user.id, ")")
       }
 
       // First pass: filter valid comments and transform them
@@ -324,7 +327,7 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
           text: text.substring(0, 50) + "...", 
           parentCommentId, 
           userId: user.id,
-          userName: user.userName 
+          userName: user.userName && user.userName !== 'Usuario' ? user.userName : `Usuario ${user.id}`
         })
         
         const newBackendComment = await createComment({
@@ -431,7 +434,7 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
     }
 
     try {
-      console.log("🚨 Reportando comentario", id, "por usuario", user.userName)
+      console.log("🚨 Reportando comentario", id, "por usuario", user.userName && user.userName !== 'Usuario' ? user.userName : `Usuario ${user.id}`)
       
       // Enviar reporte al backend
       await apiReportComment(parseInt(id, 10))

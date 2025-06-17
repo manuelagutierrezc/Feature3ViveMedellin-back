@@ -36,7 +36,7 @@ export default function CommentForm() {
         value={text}
         onChange={(e) => setText(e.target.value)}
         label="Añadir comentario"
-        placeholder={`¡Hola ${user.userName}! Comparte tu opinión sobre este evento...`}
+        placeholder={`¡Hola ${user.userName && user.userName !== 'Usuario' ? user.userName : 'participante'}! Comparte tu opinión sobre este evento...`}
         required
         rows={3}
         disabled={isSubmitting}
