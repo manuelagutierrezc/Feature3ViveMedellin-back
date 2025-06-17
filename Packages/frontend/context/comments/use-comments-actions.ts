@@ -44,7 +44,7 @@ export function useCommentsActions(
     }
 
     try {
-      await deleteComment(parseInt(id, 10));
+      await deleteComment();
       dispatch({ type: ActionType.Delete, id });
       notify("Comentario eliminado");
     } catch {
@@ -59,7 +59,7 @@ export function useCommentsActions(
     }
 
     try {
-      await reportComment(parseInt(id, 10));
+      await reportComment();
       dispatch({ type: ActionType.Report, id });
       notify("Comentario reportado");
     } catch {

@@ -14,7 +14,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = getCookie('jwt');
-    if (token) {
+    if (token && typeof token === 'string') {
       config.headers.Authorization = `Bearer ${token}`;
     }
     console.log('Request URL:', `${config.baseURL}${config.url}`);

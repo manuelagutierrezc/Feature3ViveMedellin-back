@@ -1,5 +1,3 @@
-import api from './axios';
-
 export interface CreateCommentPayload {
   content: string;
   parentCommentId?: number | null;
@@ -16,35 +14,39 @@ export interface BackendComment {
   // userName is not provided by the comment microservice directly
 }
 
-export const createComment = async (payload: CreateCommentPayload) => {
-  const { data } = await api.post<BackendComment>('/comentarios/crear', payload);
-  return data;
+// Simulamos la creación de un comentario localmente
+export const createComment = async (payload: CreateCommentPayload): Promise<BackendComment> => {
+  // Simulamos un ID único
+  const id = Math.floor(Math.random() * 1000000);
+  
+  return {
+    idComentario: id,
+    contenido: payload.content,
+    fechaCreacion: new Date().toISOString(),
+    idUsuario: 1, // ID de usuario por defecto
+    comentarioPadreId: payload.parentCommentId ?? null,
+    reporteCuenta: 0
+  };
 };
 
-export const getComments = async () => {
-  // Using 'todos' to fetch all comments and build the hierarchy on the client
-  const { data } = await api.get<BackendComment[]>('/comentarios/todos');
-  return data;
+// Retornamos array vacío para evitar llamadas al backend
+export const getComments = async (): Promise<BackendComment[]> => {
+  return [];
 };
 
-export const getReplies = async (commentId: number) => {
-  const { data } = await api.get<BackendComment[]>(`/comentarios/${commentId}/respuestas`);
-  return data;
+// Retornamos array vacío para evitar llamadas al backend
+export const getReplies = async (): Promise<BackendComment[]> => {
+  return [];
 };
 
-export const deleteComment = async (commentId: number) => {
-  await api.delete(`/comentarios/${commentId}`);
+// Simulamos la eliminación de un comentario
+export const deleteComment = async (): Promise<void> => {
+  // No hacemos nada, solo simulamos la operación
+  return;
 };
 
-export async function reportComment(commentId: number): Promise<void> {
-  const response = await fetch(`/api/comentarios/${commentId}/reportar`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error('Failed to report comment')
-  }
-} 
+// Simulamos el reporte de un comentario
+export const reportComment = async (): Promise<void> => {
+  // No hacemos nada, solo simulamos la operación
+  return;
+}; 
