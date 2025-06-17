@@ -35,7 +35,7 @@
 | 🗄 Base de Datos| ![Supabase](https://img.shields.io/badge/Supabase-1.x-3ECF8E?logo=supabase&logoColor=white)        |
 | 🔐 Auth         | ![JWT](https://img.shields.io/badge/Auth-JWT-000000?logo=jsonwebtokens&logoColor=white)             |
 | ⚙ CI/CD        | ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-Automated-2088FF?logo=githubactions&logoColor=white) |
-| 🚀 Despliegue   | ![Vercel](https://img.shields.io/badge/Vercel-Frontend-000000?logo=vercel) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?logo=docker&logoColor=white) ![Railway](https://img.shields.io/badge/Railway-Backend-0B0D0E?logo=railway) |
+| 🚀 Despliegue   | ![Vercel](https://img.shields.io/badge/Vercel-Frontend-000000?logo=vercel) ![Docker](https://img.shields.io/badge/Docker-Containers-2496ED?logo=docker&logoColor=white) ![Render](https://img.shields.io/badge/Railway-Backend-0B0D0E?logo=railway) |
 
 ---
 
