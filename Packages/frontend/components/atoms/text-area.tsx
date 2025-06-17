@@ -12,6 +12,7 @@ interface TextAreaProps {
   readonly rows?: number
   readonly className?: string
   readonly error?: string
+  readonly disabled?: boolean
 }
 
 export default function TextArea({
@@ -24,6 +25,7 @@ export default function TextArea({
   rows = 3,
   className = "",
   error,
+  disabled,
 }: TextAreaProps) {
   return (
     <div className="w-full">
@@ -43,6 +45,7 @@ export default function TextArea({
         className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#faae2b] ${
           error ? "border-red-500" : ""
         } ${className}`}
+        disabled={disabled}
       />
       {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
     </div>

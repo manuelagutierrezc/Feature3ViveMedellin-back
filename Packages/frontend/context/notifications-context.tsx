@@ -31,7 +31,8 @@ export function NotificationsProvider({ children }: { readonly children: React.R
   }, [])
 
   const addNotification = useCallback((notification: Omit<Notification, "id" | "timestamp">) => {
-    const id = `notification-${Date.now()}-${Math.random()}`
+    // Use crypto.randomUUID() for better security and uniqueness
+    const id = crypto.randomUUID()
     const newNotification: Notification = {
       ...notification,
       id,

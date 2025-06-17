@@ -131,14 +131,43 @@ export default function CommentItem({ comment, depth = 0 }: CommentItemProps) {
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+    try {
+      const date = new Date(dateString)
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return "Fecha no disponible"
+      }
+      
+      const now = new Date()
+      const diffMs = now.getTime() - date.getTime()
+      const diffMinutes = Math.floor(diffMs / (1000 * 60))
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+      
+      // Show relative time for recent comments
+      if (diffMinutes < 1) {
+        return "Hace un momento"
+      } else if (diffMinutes < 60) {
+        return `Hace ${diffMinutes} minuto${diffMinutes !== 1 ? 's' : ''}`
+      } else if (diffHours < 24) {
+        return `Hace ${diffHours} hora${diffHours !== 1 ? 's' : ''}`
+      } else if (diffDays < 7) {
+        return `Hace ${diffDays} día${diffDays !== 1 ? 's' : ''}`
+      } else {
+        // For older comments, show full date
+        return date.toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      }
+    } catch (error) {
+      console.warn('Error formatting date:', dateString, error)
+      return "Fecha no disponible"
+    }
   }
 
   // Limit nesting depth for better UI

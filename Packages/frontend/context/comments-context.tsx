@@ -41,6 +41,31 @@ type CommentsContextType = {
 
 const CommentsContext = createContext<CommentsContextType | undefined>(undefined)
 
+// Helper functions for user cache management
+const getUserFromCache = (userId: string): string | null => {
+  try {
+    const cache = localStorage.getItem('commentsUsersCache');
+    if (cache) {
+      const users = JSON.parse(cache);
+      return users[userId] || null;
+    }
+  } catch (error) {
+    console.warn('Error reading user cache:', error);
+  }
+  return null;
+};
+
+const saveUserToCache = (userId: string, userName: string) => {
+  try {
+    const cache = localStorage.getItem('commentsUsersCache');
+    const users = cache ? JSON.parse(cache) : {};
+    users[userId] = userName;
+    localStorage.setItem('commentsUsersCache', JSON.stringify(users));
+  } catch (error) {
+    console.warn('Error saving to user cache:', error);
+  }
+};
+
 // Helper to validate if a comment is valid
 const isValidComment = (comment: unknown): comment is BackendComment => {
   if (!comment || typeof comment !== 'object') return false
@@ -61,20 +86,43 @@ const transformComment = (comment: BackendComment, users: { [key: string]: User 
   // Check if this comment belongs to the logged-in user
   const isLoggedInUserComment = loggedInUser && loggedInUser.id === authorId
   
-  // If it's the logged-in user's comment, use their name
-  // Otherwise, try to find in users map or use generic name
-  const authorName = isLoggedInUserComment 
-    ? (loggedInUser.userName || `Usuario-${authorId}`)
-    : (users[authorId]?.userName || `Usuario-${authorId}`)
+  let authorName: string;
+  
+  if (isLoggedInUserComment) {
+    // If it's the logged-in user's comment, use their name and save to cache
+    authorName = loggedInUser.userName || `Participante ${authorId}`;
+    saveUserToCache(authorId, authorName);
+  } else if (users[authorId]?.userName) {
+    // If we have user info in the users map, use it and save to cache
+    authorName = users[authorId].userName;
+    saveUserToCache(authorId, authorName);
+  } else {
+    // Try to get from cache first
+    const cachedName = getUserFromCache(authorId);
+    if (cachedName) {
+      authorName = cachedName;
+    } else {
+      // Fallback to a more friendly name
+      authorName = `Participante ${authorId}`;
+    }
+  }
 
   // Crear iniciales de forma segura
   const getInitials = (name: string) => {
-    if (!name) return "U"
+    if (!name) return "P"
+    
+    // Si el nombre es del formato "Participante X", usar "P" + el número
+    if (name.startsWith("Participante ")) {
+      const number = name.split(" ")[1];
+      return `P${number.slice(-1)}`;
+    }
+    
+    // Para nombres normales, usar las iniciales
     return name
       .split(" ")
       .map((n: string) => n[0]?.toUpperCase() || "")
       .join("")
-      .substring(0, 2) || "U"
+      .substring(0, 2) || "P"
   }
 
   return {
@@ -253,6 +301,15 @@ export function CommentsProvider({ children }: { readonly children: React.ReactN
   useEffect(() => {
     fetchAndStructureComments()
   }, [fetchAndStructureComments])
+
+  // Effect to clean up cache when user logs out
+  useEffect(() => {
+    if (!user) {
+      // Don't clear cache immediately when user logs out
+      // This allows showing cached names even when logged out
+      console.log("👤 Usuario deslogueado, manteniendo caché de nombres")
+    }
+  }, [user])
 
   const addComment = useCallback(
     async (text: string, parentCommentId: string | null) => {
