@@ -1,7 +1,11 @@
+import api from "./axios";
+
 export interface CreateCommentPayload {
   content: string;
   parentCommentId?: number | null;
 }
+
+// Estructuras de datos que el backend expone de acuerdo con CommentController y Comment entity
 
 // I'm assuming the backend comment structure based on the controller
 export interface BackendComment {
@@ -14,39 +18,48 @@ export interface BackendComment {
   // userName is not provided by the comment microservice directly
 }
 
-// Simulamos la creación de un comentario localmente
-export const createComment = async (payload: CreateCommentPayload): Promise<BackendComment> => {
-  // Simulamos un ID único
-  const id = Math.floor(Math.random() * 1000000);
-  
-  return {
-    idComentario: id,
-    contenido: payload.content,
-    fechaCreacion: new Date().toISOString(),
-    idUsuario: 1, // ID de usuario por defecto
-    comentarioPadreId: payload.parentCommentId ?? null,
-    reporteCuenta: 0
-  };
+// ---------------------- Peticiones al servicio backend ---------------------- //
+
+/**
+ * Crea un comentario o respuesta.
+ * La ruta está definida en el API Gateway: /api/comentarios/crear
+ */
+export const createComment = async (
+  payload: CreateCommentPayload
+): Promise<BackendComment> => {
+  const { data } = await api.post<BackendComment>("comentarios/crear", payload);
+  return data;
 };
 
-// Retornamos array vacío para evitar llamadas al backend
+/**
+ * Obtiene todos los comentarios (incluyendo respuestas) ordenados por fecha
+ * La ruta está definida en el API Gateway: /api/comentarios/todos
+ */
 export const getComments = async (): Promise<BackendComment[]> => {
-  return [];
+  const { data } = await api.get<BackendComment[]>("comentarios/todos");
+  return data;
 };
 
-// Retornamos array vacío para evitar llamadas al backend
-export const getReplies = async (): Promise<BackendComment[]> => {
-  return [];
+/**
+ * Elimina un comentario. Solo será aceptado si el usuario autenticado es el autor.
+ */
+export const deleteComment = async (id: string | number): Promise<void> => {
+  await api.delete(`comentarios/${id}`);
 };
 
-// Simulamos la eliminación de un comentario
-export const deleteComment = async (): Promise<void> => {
-  // No hacemos nada, solo simulamos la operación
-  return;
+/**
+ * Reporta un comentario. Cuando llegue a 3 reportes el backend lo elimina automáticamente.
+ */
+export const reportComment = async (id: string | number): Promise<void> => {
+  await api.post(`comentarios/${id}/reportar`);
 };
 
-// Simulamos el reporte de un comentario
-export const reportComment = async (): Promise<void> => {
-  // No hacemos nada, solo simulamos la operación
-  return;
+// Por ahora no se usa, pero lo dejamos disponible por si se necesitan respuestas aisladas:
+export const getReplies = async (
+  parentCommentId: number | string
+): Promise<BackendComment[]> => {
+  const { data } = await api.get<BackendComment[]>(
+    `comentarios/${parentCommentId}/respuestas`
+  );
+  return data;
 }; 

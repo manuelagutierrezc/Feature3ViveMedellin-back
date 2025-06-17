@@ -1,12 +1,12 @@
-import { useCallback } from "react";
-import { createComment, deleteComment, reportComment } from "../../lib/api/comments";
+import { useCallback, type Dispatch } from "react";
+import { createComment, deleteComment as deleteCommentApi, reportComment as reportCommentApi } from "../../lib/api/comments";
 import type { User } from "../../lib/api/auth";
 import { ActionType, type CommentAction } from "./comments-types";
 import { transformComment } from "../../utils/comments-helpers";
 
 export function useCommentsActions(
   user: User | null,
-  dispatch: React.Dispatch<CommentAction>,
+  dispatch: Dispatch<CommentAction>,
   notify: (msg: string) => void
 ) {
   const addComment = useCallback(async (text: string, parentCommentId: string | null) => {
@@ -44,7 +44,7 @@ export function useCommentsActions(
     }
 
     try {
-      await deleteComment();
+      await deleteCommentApi(parseInt(id, 10));
       dispatch({ type: ActionType.Delete, id });
       notify("Comentario eliminado");
     } catch {
@@ -59,7 +59,7 @@ export function useCommentsActions(
     }
 
     try {
-      await reportComment();
+      await reportCommentApi(parseInt(id, 10));
       dispatch({ type: ActionType.Report, id });
       notify("Comentario reportado");
     } catch {
