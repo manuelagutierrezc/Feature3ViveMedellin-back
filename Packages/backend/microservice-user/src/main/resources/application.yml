@@ -6,9 +6,12 @@ spring:
     name: microservice-user
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${URL_DB}
-    username: ${USERNAME_DB}
-    password: ${PASSWORD_DB}
+    url: jdbc:postgresql://localhost:5432/UsuarioDB
+    username: postgres
+    password: 3201
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
   jpa:
     hibernate:
       ddl-auto: update
@@ -24,3 +27,9 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health, prometheus

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentService {
@@ -29,7 +30,7 @@ public class CommentService {
     }
 
     public List<Comment> getAllComments() {
-        return commentRepository.findAll();
+        return commentRepository.findAll().stream().map(Comment::new).collect(Collectors.toList());
     }
 
     public List<Comment> getParentComments() {

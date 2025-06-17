@@ -53,6 +53,16 @@ public class Comment {
         this.comentarioPadreId = comentarioPadreId;
     }
 
+    // Constructor de copia
+    public Comment(Comment other) {
+        this.idComentario = other.idComentario;
+        this.idUsuario = other.idUsuario;
+        this.contenido = other.contenido;
+        this.comentarioPadreId = other.comentarioPadreId;
+        this.fechaCreacion = other.fechaCreacion;
+        this.reporteCuenta = other.reporteCuenta;
+    }
+
     // Método personalizado para setear el comentario padre y actualizar el ID
     public void setComentarioPadre(Comment comentarioPadre) {
         this.comentarioPadre = comentarioPadre;
