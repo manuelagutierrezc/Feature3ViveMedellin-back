@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getCookie, deleteCookie } from 'cookies-next';
 
 const api = axios.create({
-  baseURL: '/api/',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -14,7 +14,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = getCookie('jwt');
-    if (token && typeof token === 'string') {
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     console.log('Request URL:', `${config.baseURL}${config.url}`);

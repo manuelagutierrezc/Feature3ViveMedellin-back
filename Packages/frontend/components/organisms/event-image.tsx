@@ -1,4 +1,3 @@
-"use client"
 import Image from "next/image"
 import Typography from "@/components/atoms/typography"
 

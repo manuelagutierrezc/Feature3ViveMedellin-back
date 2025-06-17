@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import Header from "@/components/organisms/header";
 
 export default function InicioPage() {
   return (
     <div className="min-h-screen bg-[#f2f7f5]">
+      <Header />
       <main className="max-w-[1200px] mx-auto px-1 py-3">
         <h1 className="text-[35px] font-bold text-[#00473e] mb-4 leading-tight">
           ¡Descubre actividades locales!

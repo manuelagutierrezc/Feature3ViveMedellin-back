@@ -2,16 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/auth/auth-context";
-import { useNotifications } from "@/context/notifications/notifications-context";
+import { useAuth } from "@/context/auth-context";
+import { useNotifications } from "@/context/notifications-context";
 import type { LoginRequest } from "@/lib/api/auth";
 import type { AxiosError } from "axios";
 import Image from "next/image";
 import { Facebook, Chrome } from "lucide-react";
-
-interface ErrorResponse {
-  message?: string;
-}
 
 export default function LoginForm() {
   const router = useRouter();
@@ -51,7 +47,7 @@ export default function LoginForm() {
     } catch (err: unknown) {
       const axiosErr = err as AxiosError;
       console.error("⛔ Error en login:", axiosErr);
-      const errorMessage = (axiosErr.response?.data as ErrorResponse)?.message ?? "Error al iniciar sesión. Por favor, intenta de nuevo.";
+      const errorMessage = axiosErr.response?.data?.message ?? "Error al iniciar sesión. Por favor, intenta de nuevo.";
       setError(errorMessage);
       
       addNotification({
