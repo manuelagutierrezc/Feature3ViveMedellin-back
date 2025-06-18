@@ -1,55 +1,55 @@
-name: CI/CD Pipeline for Next.js on Vercel
-
+name: Build and Deploy
 on:
   push:
     branches:
       - main
-      - 'releases/*'
   pull_request:
-    branches:
-      - main
-      - 'releases/*'
-
+    types: [opened, synchronize, reopened]
 jobs:
   build:
+    name: Build and Analyze
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          submodules: true  # Asegura que se obtengan los submódulos si es necesario
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Ajusta según la versión de Node.js que uses
+          node-version: '20'
 
       - name: Install dependencies
         run: |
           cd Packages/frontend
           npm install
 
-      - name: Run Lint
+      - name: Run Tests and Build
         run: |
           cd Packages/frontend
           npm run lint
-
-      - name: Build Next.js app
-        run: |
-          cd Packages/frontend
+          npm run test:ci
           npm run build
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'  # Solo despliega en la rama principal
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectBaseDir: Packages/frontend
 
+  deploy:
+    name: Deploy to Vercel
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           submodules: true
+
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v20
@@ -58,7 +58,9 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
+          zeit-token: ''
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
