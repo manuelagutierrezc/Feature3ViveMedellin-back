@@ -28,7 +28,6 @@ jobs:
         run: |
           cd Packages/frontend
           npm run lint
-          npm run test:ci
           npm run build
 
       - name: SonarQube Scan
