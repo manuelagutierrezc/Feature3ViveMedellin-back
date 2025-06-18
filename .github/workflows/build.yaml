@@ -40,7 +40,7 @@ jobs:
         with:
           projectBaseDir: Packages/backend
           args: >
-            -Dsonar.projectKey=manuelagutierrezc_Feature3ViveMedellin-backend
+            -Dsonar.projectKey=manuelagutierrezc_Feature3ViveMedellin-back
             -Dsonar.organization=manuelagutierrezc
             -Dsonar.sources=.
             -Dsonar.java.binaries=.
